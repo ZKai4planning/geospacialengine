@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Find your property – planning application</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<main>
+  <header>
+    <h1>Which property is the application for?</h1>
+    <p>Enter a postcode to see every address, or start typing the address.</p>
+  </header>
+
+  <section class="finder" aria-label="Address search">
+    <label for="q">Postcode or address</label>
+    <div class="combo">
+      <input id="q" type="text" role="combobox" aria-expanded="false" aria-controls="list" aria-autocomplete="list"
+             autocomplete="off" spellcheck="false" placeholder="E6 2AA or 22 Example Road">
+      <ul id="list" role="listbox" hidden></ul>
+    </div>
+    <p id="status" role="status" aria-live="polite"></p>
+    <p id="manual-link" hidden><button type="button" class="link" id="manual-toggle">Can't find your address? Enter it manually</button></p>
+    <form id="manual" hidden>
+      <label for="m-line1">First line of the address</label>
+      <input id="m-line1" maxlength="80" required placeholder="22 Example Road" autocomplete="off">
+      <label for="m-town">Town / city <span class="hint">optional</span></label>
+      <input id="m-town" maxlength="60" autocomplete="off">
+      <div class="actions"><button type="submit">Use this address</button></div>
+    </form>
+
+    <div id="confirm" hidden>
+      <p>Is this the property?</p>
+      <strong id="confirm-addr"></strong>
+      <div class="actions">
+        <button id="yes" type="button">Yes, use this address</button>
+        <button id="no" type="button" class="ghost">Choose a different address</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="result" hidden aria-live="polite"></section>
+</main>
+<script src="/app.js" type="module"></script>
+</body>
+</html>

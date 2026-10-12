@@ -1,0 +1,9 @@
+data
+test
+scripts
+node_modules
+.env
+.env.*
+!.env.example
+Dockerfile
+.git

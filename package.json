@@ -1,0 +1,31 @@
+{
+  "name": "uk-planning-engine",
+  "version": "1.0.0",
+  "description": "Address lookup, property enrichment, street view and permitted-development engine for UK planning applications",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test",
+    "diagnose": "node scripts/diagnose.js",
+    "import:uprn": "node scripts/import-uprn.js",
+    "db:schema": "node scripts/apply-schema.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.4.0",
+    "helmet": "^7.1.1",
+    "lru-cache": "^11.0.0",
+    "pg": "^8.13.0",
+    "pino": "^9.4.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "pg-copy-streams": "^6.0.6"
+  }
+}
