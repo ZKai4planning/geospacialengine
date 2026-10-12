@@ -37,7 +37,8 @@ const env = z
     OPEN_UPRN_MAX_M: z.coerce.number().int().default(15),
     OVERPASS_URLS: z.string().default('https://overpass-api.de/api/interpreter,https://overpass.private.coffee/api/interpreter,https://overpass.kumi.systems/api/interpreter'),
   })
-  .parse(process.env);
+  // Blank values (e.g. "ADDRESS_PROVIDER=" pasted from .env.example into a hosting dashboard) count as "not set".
+  .parse(Object.fromEntries(Object.entries(process.env).filter(([, v]) => v !== '')));
 
 export const config = Object.freeze({
   nodeEnv: env.NODE_ENV,

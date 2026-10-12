@@ -75,9 +75,14 @@ npm run diagnose                                             # confirms the conn
 After it finishes you can delete `data/open-uprn.sqlite` (1.7 GB) – it is never deployed (`.gitignore` / `.vercelignore`).
 
 ### 3. Vercel
-1. Push the project to GitHub (`data/`, `.env`, `node_modules` are git-ignored) and **Import** it in Vercel. Framework preset: *Other*; leave build/output settings empty.
+1. Push the project to GitHub (`data/`, `.env`, `node_modules` are git-ignored) and **Import** it in Vercel. `vercel.json` already forces *Framework: Other* (so Vercel does not try to run the Express app itself) and serves `public/` as static files; leave the dashboard build/output settings alone. If the project was first imported with the *Express* preset, set **Settings → Build & Development → Framework Preset** to *Other* and redeploy.
 2. **Settings → Environment Variables**: add `DATABASE_URL` (the **pool** string), `HTTP_USER_AGENT` (with a contact URL/email – Overpass blocks anonymous clients), and any of `DATABASE_CA_CERT`, `OS_DATA_HUB_KEY`, `MAPILLARY_TOKEN`, `GOOGLE_MAPS_API_KEY`, `CORS_ORIGINS`. Do **not** add `DATABASE_DIRECT_URL`.
 3. Deploy. Check `https://<your-app>.vercel.app/health`. Or from the CLI: `npm i -g vercel && vercel --prod`.
+
+**If the site shows `500 FUNCTION_INVOCATION_FAILED`:** open `https://<your-app>.vercel.app/health`. A startup problem now returns JSON such as
+`{"error":"startup_failed","message":"..."}` naming the cause (a bad environment variable, an invalid `DATABASE_URL`, a missing package). The full error is also in
+Vercel → your project → **Logs** (filter *Runtime Logs*; search `STARTUP FAILED`). Common causes: Framework Preset left on *Express*; a `DATABASE_URL` whose password has
+unencoded special characters (`@` must be `%40`); a provider set to `google`/`mapillary` without its key. Once it works you can remove the JSON message from `api/index.js` if you prefer a generic error.
 
 Notes for serverless:
 - **Connections:** every warm instance holds its own small pool (`PG_POOL_MAX`, default 3). Always give Vercel the pooler string so many instances share a limited number of real database connections.

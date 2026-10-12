@@ -5,7 +5,10 @@
  * Pass the provider's CA certificate (DATABASE_CA_CERT) for full verification, or leave it out for encrypted-but-unverified TLS.
  */
 export function pgConfig(url, { ssl = 'require', ca = null } = {}) {
-  const u = new URL(url);
+  let u;
+  try { u = new URL(url); } catch {
+    throw new Error('DATABASE_URL is not a valid connection URL (expected postgresql://user:password@host:port/db). Special characters in the password must be URL-encoded, e.g. @ -> %40, # -> %23.');
+  }
   u.searchParams.delete('sslmode');
   return {
     connectionString: u.toString(),
