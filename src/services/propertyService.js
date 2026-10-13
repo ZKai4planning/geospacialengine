@@ -8,6 +8,7 @@ const unconfirmed = { value: null, source: 'unconfirmed' };
 export function createPropertyService({ providers }) {
   return {
     findSite: (a) => cached(`site:${a.id}`, () => providers.buildings.findSite(a), 86400),
+    findTitle: (a) => cached(`title:${a.id}`, () => providers.titles.findTitle(a), 86400),
     findPlot: (a) => cached(`plot:${a.id}`, () => providers.parcels.findPlot(a), 86400),
 
     buildProfile({ footprint, plot }) {

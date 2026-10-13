@@ -56,6 +56,13 @@ form.proposal h2{margin:0 0 4px;color:var(--navy);font-size:20px}
 .l-building{fill:rgba(214,47,47,.10);stroke:var(--red);stroke-width:2.5;stroke-dasharray:7 5}
 .l-existing_extension{fill:rgba(255,160,0,.28);stroke:#ff9f00;stroke-width:2;stroke-dasharray:4 3}
 .l-proposal{fill:rgba(47,84,214,.38);stroke:#2f54d6;stroke-width:3}
+.l-neighbour{fill:rgba(255,255,255,.06);stroke:rgba(255,255,255,.75);stroke-width:1.5}
+.l-neighbour.st-overlap{fill:rgba(214,47,47,.55);stroke:#ff3b3b;stroke-width:3}
+.l-neighbour.st-close{fill:rgba(255,160,0,.45);stroke:#ffb020;stroke-width:2.5}
+.l-neighbour.st-adjoining{stroke:rgba(255,255,255,.95)}
+.l-plot{fill:none;stroke:#3ddc84;stroke-width:2.5;stroke-dasharray:10 5}
+.l-plot.st-crosses{stroke:#ff3b3b;stroke-width:3.5;stroke-dasharray:none}
+.l-plot.st-unreliable{stroke:rgba(255,255,255,.5);stroke-dasharray:3 6}
 .l-proposal.roof{fill:url(#hatch)}
 .lbl{font:700 12px system-ui,sans-serif;fill:#fff;paint-order:stroke;stroke:rgba(10,18,60,.85);stroke-width:3.5px;stroke-linejoin:round}
 .scale line{stroke:#fff;stroke-width:3}.scale text{font:700 11px system-ui,sans-serif;fill:#fff;paint-order:stroke;stroke:rgba(0,0,0,.7);stroke-width:3px}
@@ -65,6 +72,9 @@ form.proposal h2{margin:0 0 4px;color:var(--navy);font-size:20px}
 .s-building{border-color:var(--red);border-style:dashed;background:rgba(214,47,47,.1)}
 .s-existing{border-color:#ff9f00;background:rgba(255,160,0,.3)}
 .s-proposal{border-color:#2f54d6;background:rgba(47,84,214,.4)}
+.s-neighbour{border-color:#9aa3bd;background:rgba(154,163,189,.25)}
+.s-plot{border-color:#2fbf71;border-style:dashed;background:transparent}
+.sitechecks{margin:10px 0}.sitechecks h3{margin:0 0 2px;font-size:15px;color:var(--navy)}.sitechecks .checks{margin-top:6px}.attr-line{font-size:11px}
 button.link{background:none;border:0;padding:0;color:var(--accent);font:inherit;font-weight:600;text-decoration:underline;cursor:pointer}
 .check{display:flex;align-items:center;gap:8px;font-weight:400}.check input{width:auto}
 details{margin:12px 0}summary{cursor:pointer;color:var(--navy);font-weight:600}

@@ -44,7 +44,12 @@ export function createMockProviders() {
       async findSite({ lat, lng }) {
         const dLat = 0.0000404, dLng = 0.000036; // ~9 m deep x ~5 m wide
         const ring = [[lng - dLng, lat - dLat], [lng + dLng, lat - dLat], [lng + dLng, lat + dLat], [lng - dLng, lat + dLat], [lng - dLng, lat - dLat]];
+        const box = (l0, l1) => [[l0, lat - dLat], [l1, lat - dLat], [l1, lat + dLat], [l0, lat + dLat], [l0, lat - dLat]];
         return {
+          neighbours: [ // the terraced houses either side
+            { osmId: null, ring: box(lng - 3 * dLng, lng - dLng), buildingType: 'terrace' },
+            { osmId: null, ring: box(lng + dLng, lng + 3 * dLng), buildingType: 'terrace' },
+          ],
           footprint: { source: 'mock', osmId: null, ring, areaM2: Math.round(ringAreaM2(ring)), levels: 2, roofShape: 'gabled', buildingType: 'terrace' },
           roads: [[[lng - 0.0004, lat - 0.0001], [lng + 0.0004, lat - 0.0001]]], // street runs along the south side
         };
@@ -52,5 +57,13 @@ export function createMockProviders() {
     },
     planningData: { name: 'mock', async entitiesAt() { return []; } },
     parcels: { name: 'mock', async findPlot() { return { areaM2: 156, source: 'mock' }; } },
+    titles: {
+      name: 'mock',
+      async findTitle({ lat, lng }) { // house width, ~2 m front garden, ~10 m rear garden
+        const dLat = 0.0000404, dLng = 0.000036;
+        const ring = [[lng - dLng, lat - dLat - 0.000018], [lng + dLng, lat - dLat - 0.000018], [lng + dLng, lat + dLat + 0.00009], [lng - dLng, lat + dLat + 0.00009], [lng - dLng, lat - dLat - 0.000018]];
+        return { source: 'mock', reference: 'MOCK1', ring, areaM2: Math.round(ringAreaM2(ring)), attribution: 'Sample title boundary (mock data).' };
+      },
+    },
   };
 }

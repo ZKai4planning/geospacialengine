@@ -112,12 +112,14 @@ const rows = (r) => el('ul', { class: 'rows' }, r.map((x) => el('li', {}, el('sp
 
 function mapView(app) {
   const m = app.map, { w, h } = m.view;
+  const Z = { plot: 0, neighbour: 1, building: 2, existing_extension: 3, proposal: 4 }; // draw order: context first, proposal on top
+  const ordered = [...m.layers].sort((a, b) => (Z[a.kind] ?? 9) - (Z[b.kind] ?? 9));
   const layer = (l) => {
-    const cls = `l-${l.kind}${l.style === 'roof' ? ' roof' : ''}`;
+    const cls = `l-${l.kind}${l.style === 'roof' ? ' roof' : ''}${l.status ? ` st-${l.status}` : ''}`;
     return svg('path', { d: l.path, class: cls, 'fill-rule': 'evenodd' });
   };
   const label = (l) => {
-    if (l.kind === 'building') return null;
+    if (l.kind === 'building' || l.kind === 'plot' || (l.kind === 'neighbour' && !l.label)) return null;
     const text = l.kind === 'proposal' ? [l.label, l.dimsText].filter(Boolean) : [l.label];
     return svg('text', { x: l.labelAt.x, y: l.labelAt.y - (text.length - 1) * 7, 'text-anchor': 'middle', class: 'lbl' },
       text.map((t, i) => svg('tspan', { x: l.labelAt.x, dy: i ? 14 : 0 }, document.createTextNode(t))));
@@ -126,15 +128,27 @@ function mapView(app) {
   const sv = svg('svg', { viewBox: `0 0 ${w} ${h}`, preserveAspectRatio: 'none', class: 'map-svg', role: 'img', 'aria-label': 'Proposed work outlined on the aerial photo' },
     svg('defs', {}, svg('pattern', { id: 'hatch', width: 7, height: 7, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' },
       svg('rect', { width: 7, height: 7, fill: 'rgba(47,84,214,.18)' }), svg('line', { x1: 0, y1: 0, x2: 0, y2: 7, stroke: 'rgba(47,84,214,.8)', 'stroke-width': 2 }))),
-    m.layers.map(layer), m.layers.map(label),
+    ordered.map(layer), ordered.map(label),
     svg('g', { class: 'scale' }, svg('line', { x1: 14, y1: h - 16, x2: 14 + s.px, y2: h - 16 }), svg('text', { x: 14, y: h - 22 }, document.createTextNode(`${s.metres} m`))));
   return sv;
 }
 
 const legend = (app) => el('ul', { class: 'legend' },
   el('li', {}, el('i', { class: 'sw s-building' }), 'Existing house'),
+  app.map.layers.some((l) => l.kind === 'neighbour') ? el('li', {}, el('i', { class: 'sw s-neighbour' }), 'Neighbouring buildings') : null,
+  app.map.layers.some((l) => l.kind === 'plot') ? el('li', {}, el('i', { class: 'sw s-plot' }), 'Title boundary (indicative)') : null,
   app.map.layers.some((l) => l.kind === 'existing_extension') ? el('li', {}, el('i', { class: 'sw s-existing' }), 'Existing extension') : null,
   app.map.layers.some((l) => l.kind === 'proposal') ? el('li', {}, el('i', { class: 'sw s-proposal' }), 'Your proposal') : null);
+
+function siteChecksView(app) {
+  const sc = app.map.siteChecks;
+  if (!sc?.items?.length) return null;
+  return el('div', { class: 'sitechecks' },
+    el('h3', {}, 'Map checks'),
+    el('ul', { class: 'checks' }, sc.items.map((c) => el('li', { class: c.status }, c.message))),
+    el('p', { class: 'note' }, sc.disclaimer),
+    sc.attribution?.length ? el('p', { class: 'note attr-line' }, sc.attribution.join(' · ')) : null);
+}
 
 function cardsFor(app) {
   const { property, proposal, site } = app.cards;
@@ -147,6 +161,7 @@ function cardsFor(app) {
       el('div', { class: 'img' }, el('img', { src: site.imageUrl, alt: 'Aerial view of the property' }), mapView(app), site.attribution ? el('span', { class: 'attr' }, site.attribution) : null),
       el('div', { class: 'body' },
         legend(app),
+        siteChecksView(app),
         el('p', { class: 'note' }, app.map.frontNote, ' ',
           el('button', { type: 'button', class: 'link', onclick: swapFront }, 'Front and back look wrong? Swap')),
         rows(site.rows))));

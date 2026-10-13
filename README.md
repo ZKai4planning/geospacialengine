@@ -97,6 +97,24 @@ When an applicant confirms an OpenStreetMap or typed address, the engine finds t
 Matching: `high` confidence = one UPRN within 8 m and the next is ≥5 m further; otherwise `low` (flats, tightly packed terraces) and the UI asks the applicant to confirm,
 with the candidate list in `address.uprnMatch.candidates`. Manual (postcode-centre) addresses are never matched. Setting: `OPEN_UPRN_MAX_M`.
 
+## Map checks: neighbours and plot boundary
+
+After the applicant picks a work type, the map highlights conflicts and a **Map checks** list explains them (`src/services/siteChecks.js`):
+
+| Check | Data | Result |
+|---|---|---|
+| Neighbouring buildings | OpenStreetMap outlines within 40 m (`osmBuildings.js`) | **Red** if the proposal overlaps one (≥ 0.5 m²), **amber** if within 1 m, grey "adjoins" if it only shares a wall (party wall note) |
+| Plot boundary | HM Land Registry `title-boundary` polygon via planning.data.gov.uk (`titleBoundary.js`) | Boundary turns **red** if the proposal sticks out more than 0.5 m beyond it, with the depth and area |
+
+Rules of thumb built in, to avoid crying wolf: overlaps under 0.5 m² and anything within 0.5 m of the title line are treated as map noise; duplicate/part-of-house outlines are ignored;
+if the title found does not contain the house (shared or split titles) the boundary check is skipped; roof-level work (dormer, extra storey) skips both checks; with no building outline found, both are skipped.
+All thresholds are in `THRESHOLDS` at the top of `siteChecks.js`. Results are shown as **indicative** with a disclaimer and attribution; they are not planning verdicts and do not change the permitted-development assessment.
+
+Data notes:
+- The title boundary is not the legal boundary, and the planning.data.gov.uk `title-boundary` dataset may not cover every area yet; when none is found the check is simply skipped.
+  Confirm the licence/attribution terms for your use (the data carries HM Land Registry and Ordnance Survey crown copyright wording).
+- Do not derive these overlays by analysing Google imagery or tiles: Google's terms restrict extracting or tracing data from its content. Google stays display-only (satellite background, Street View).
+
 ## Is "live" working? Run the diagnostic
 ```bash
 npm run diagnose                 # tests postcodes.io, Photon, each Overpass mirror, Esri, planning.data.gov.uk
@@ -144,7 +162,7 @@ It is **screening only** – keep the disclaimer and recommend a Lawful Developm
 
 ## Verification status (Postgres / Vercel changes)
 Verified: the JS side of the Postgres layer (UPRN provider, batch matching, draft store, connection-string handling, container wiring) against an in-memory fake pool, the importer's SQLite read query against the real 41.7M-row file, and syntax of all files.
-**Not verified:** `db/schema.sql` against a real Postgres, `scripts/import-uprn.js` against a real cluster, and the Vercel deployment itself – run steps 1–3 above and `npm run diagnose` to confirm.
+**Not verified:** the live planning.data.gov.uk `title-boundary` response (the parser follows its published WKT format and fails safe to "no boundary"), `db/schema.sql` against a real Postgres, `scripts/import-uprn.js` against a real cluster, and the Vercel deployment itself – run steps 1–3 above and `npm run diagnose` to confirm.
 
 ## Verification status (original engine)
 Verified here: 13 unit tests (postcode parsing, permitted-development rules per work type) and 6 geometry/map tests

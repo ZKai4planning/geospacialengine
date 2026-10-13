@@ -5,6 +5,7 @@ import { createOsmAddress } from './osmAddress.js';
 import { createPostcodesIo } from './postcodesIo.js';
 import { createOsmBuildings } from './osmBuildings.js';
 import { createPlanningData } from './planningData.js';
+import { createTitleBoundary } from './titleBoundary.js';
 import { createGoogleMedia } from './googleMedia.js';
 import { createEsriAerial } from './esriAerial.js';
 import { createMapillary } from './mapillary.js';
@@ -42,6 +43,7 @@ export function createProviders({ db = getDb() } = {}) {
     postcodes,
     buildings: createOsmBuildings(),
     planningData: createPlanningData(),
+    titles: createTitleBoundary(), // HM Land Registry title boundary (indicative plot outline)
     // Authoritative plot area needs a licensed parcel source (INSPIRE polygons / OS NGD). Left unset on purpose.
     parcels: { name: 'none', async findPlot() { return null; } },
     uprn: db ? createOpenUprn({ db }) : null,

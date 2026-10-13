@@ -27,7 +27,7 @@ export function createApplicationService({ store, addressService, constraintsSer
   /** Recomputes the map layers + the permitted-development assessment from the current state. */
   function derive(app) {
     const map = buildMap({
-      address: app.address, footprint: app.footprint, roads: app.roads,
+      address: app.address, footprint: app.footprint, roads: app.roads, neighbours: app.neighbours ?? [], plot: app.plot ?? null,
       camera: app.media?.streetView?.camera ?? null, profile: app.profile, proposal: app.proposal,
     });
     let assessment = null;
@@ -54,10 +54,11 @@ export function createApplicationService({ store, addressService, constraintsSer
       const warnings = [];
       if (address.uprnMatch?.confidence === 'low') warnings.push(`Several properties are very close together, so UPRN ${address.uprn} is a best guess from the map – please confirm it.`);
       if (address.approximate) warnings.push('You entered this address manually, so the map is centred on the postcode – please check the red outline is the right building.');
-      const [postcodeInfo, site, plot, constraints, media] = await Promise.all([
+      const [postcodeInfo, site, plot, title, constraints, media] = await Promise.all([
         safe('Postcode data', () => addressService.postcodeInfo(address.postcode), null, warnings),
-        safe('Building outline', () => propertyService.findSite(address), { footprint: null, roads: [] }, warnings),
+        safe('Building outline', () => propertyService.findSite(address), { footprint: null, roads: [], neighbours: [] }, warnings),
         safe('Site area', () => propertyService.findPlot(address), null, warnings),
+        safe('Plot boundary', () => propertyService.findTitle(address), null, warnings),
         safe('Planning constraints', () => constraintsService.check(address), null, warnings),
         safe('Street imagery', () => mediaService.prepare(address), { streetView: { available: false }, aerial: { available: true } }, warnings),
       ]);
@@ -83,7 +84,7 @@ export function createApplicationService({ store, addressService, constraintsSer
           code: postcodeInfo?.lpaCode ?? null,
           note: 'Derived from the postcode – confirm with the planning authority finder before submitting.',
         },
-        footprint: site.footprint, roads: site.roads, constraints, media,
+        footprint: site.footprint, roads: site.roads, neighbours: site.neighbours ?? [], plot: title, constraints, media,
         profile: propertyService.buildProfile({ footprint: site.footprint, plot }),
         proposal: null, warnings,
       };
