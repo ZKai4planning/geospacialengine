@@ -1,0 +1,23 @@
+import 'dotenv/config';
+import pg from 'pg';
+import { pgConfig } from '../src/utils/pgConfig.js';
+
+const url = process.env.DATABASE_DIRECT_URL || process.env.DATABASE_URL;
+console.log('Host:', new URL(url).host);
+const ca = process.env.DATABASE_CA_CERT ? process.env.DATABASE_CA_CERT.replace(/\\n/g, '\n') : null;
+const c = new pg.Client(pgConfig(url, { ssl: process.env.DATABASE_SSL === 'disable' ? 'disable' : 'require', ca }));
+await c.connect();
+const q = async (label, sql) => console.log(label, (await c.query(sql)).rows[0]);
+await q('read-only default:', 'SHOW default_transaction_read_only');
+await q('is replica:', 'SELECT pg_is_in_recovery() AS in_recovery');
+await q('database size:', 'SELECT pg_size_pretty(pg_database_size(current_database())) AS size');
+const t = await c.query(`SELECT relname, pg_size_pretty(pg_total_relation_size(oid)) AS size FROM pg_class WHERE relkind='r' AND relnamespace='public'::regnamespace ORDER BY pg_total_relation_size(oid) DESC`);
+console.table(t.rows);
+await q('parcels:', `SELECT count(*)::text AS n, count(DISTINCT council)::text AS councils FROM inspire_parcels`);
+const ix = await c.query(`SELECT indexrelid::regclass AS index, pg_size_pretty(pg_relation_size(indexrelid)) AS size FROM pg_index WHERE indrelid IN ('inspire_parcels'::regclass, 'uprn'::regclass)`);
+console.table(ix.rows);
+await q('read-only now:', 'SHOW default_transaction_read_only');
+await q('database:', 'SELECT current_database() AS name');
+const byLetter = await c.query(`SELECT left(council,1) AS letter, count(DISTINCT council)::int AS councils FROM inspire_parcels GROUP BY 1 ORDER BY 1`);
+console.table(byLetter.rows);
+await c.end();

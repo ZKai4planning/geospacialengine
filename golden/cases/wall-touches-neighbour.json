@@ -1,0 +1,39 @@
+{
+  "id": "wall-touches-neighbour",
+  "title": "Extension wall built against the neighbour's own extension",
+  "kind": "legislation",
+  "basis": "Party Wall etc. Act 1996 (guidance); wallTouchM = 0.3 m",
+  "type": "site",
+  "input": {
+    "house": [
+      0,
+      0,
+      5,
+      9
+    ],
+    "proposal": [
+      0,
+      9,
+      5,
+      13
+    ],
+    "neighbours": [
+      [
+        5,
+        0,
+        10,
+        12
+      ]
+    ]
+  },
+  "expect": {
+    "walls": {
+      "east": "touches_neighbour",
+      "west": "clear"
+    },
+    "wallSafety": "attention",
+    "items": [
+      "hard against the neighbouring building"
+    ]
+  }
+}

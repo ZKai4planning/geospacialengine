@@ -13,11 +13,21 @@ const q = `[out:json][timeout:15];(nwr(around:${config.overpassRadiusM},${lat},$
 
 // extra public mirrors worth trying if the defaults don't answer from your network
 const EXTRA_MIRRORS = ['https://overpass.openstreetmap.fr/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
-const mirrors = [...new Set([...config.overpassUrls, ...EXTRA_MIRRORS])];
+const mirrors = [...new Set([...config.overpassUrls, ...EXTRA_MIRRORS])].filter((u) => u !== config.overpassSelfUrl);
 
 const tests = [
   { name: 'postcodes.io (postcode -> location)', url: `https://api.postcodes.io/postcodes/${encodeURIComponent(pc)}`, ok: (j) => (j?.result?.latitude ? `${j.result.admin_district}` : null) },
   { name: 'Photon (address type-ahead)', url: 'https://photon.komoot.io/api/?q=10%20Downing%20Street%20London&limit=3', ok: (j) => (j?.features?.length ? `${j.features.length} result(s)` : null) },
+  // Your own constraints / tree / title mirror (CONSTRAINTS_URL + CONSTRAINTS_KEY). What the app tries first.
+  ...(config.constraintsUrl && config.constraintsKey ? ['conservation-area', 'listed-building-outline', 'tree-preservation-zone', 'title-boundary'].map((d) => ({
+    name: `Constraints MIRROR ${d}`, url: `${config.constraintsUrl}/${d}?lon=${lng}&lat=${lat}`, headers: { 'x-api-key': config.constraintsKey },
+    ok: (j) => (j?.status === 'ok' ? `${j.count} found at ${pc}` : j?.status === 'outside_coverage' ? 'outside the mirror\'s coverage (title-boundary is London only: normal elsewhere)' : null),
+  })) : []),
+  ...(config.overpassSelfUrl ? [{
+    name: `Overpass SELF-HOSTED ${new URL(config.overpassSelfUrl).host}`, url: config.overpassSelfUrl, mirror: true, method: 'POST', body: new URLSearchParams({ data: q }),
+    headers: { accept: '*/*', ...(config.overpassSelfKey ? { 'x-api-key': config.overpassSelfKey } : {}) },
+    ok: (j) => (Array.isArray(j?.elements) ? `${j.elements.length} address element(s) near ${pc}` : null),
+  }] : []),
   ...mirrors.map((u) => ({
     name: `Overpass ${new URL(u).host}`, url: u, mirror: true, method: 'POST', body: new URLSearchParams({ data: q }), headers: { accept: '*/*' },
     ok: (j) => (Array.isArray(j?.elements) ? `${j.elements.length} address element(s) near ${pc}` : null),
@@ -25,7 +35,9 @@ const tests = [
   { name: 'Esri World Imagery (aerial)', url: 'https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/export?bbox=-14050,6710000,-13950,6710100&bboxSR=3857&imageSR=3857&size=64,64&format=jpg&f=image', binary: true },
   { name: 'Esri aerial – full-size export (what the app first tries)', url: 'https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/export?bbox=-14050,6710000,-13955,6710060&bboxSR=3857&imageSR=3857&size=1280,800&format=jpg&f=image', binary: true },
   { name: 'Esri aerial – map tile (fallback)', url: 'https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/18/110170/130992', binary: true },
-  { name: 'planning.data.gov.uk (constraints)', url: 'https://www.planning.data.gov.uk/entity.json?longitude=-0.1276&latitude=51.5034&dataset=conservation-area&limit=1', ok: (j) => (Array.isArray(j?.entities) ? `${j.entities.length} entity` : null) },
+  { soft: !!config.constraintsUrl, name: 'planning.data.gov.uk (title-boundary, live fallback)', url: `https://www.planning.data.gov.uk/entity.json?dataset=title-boundary&longitude=${lng}&latitude=${lat}&limit=5`, ok: (j) => (Array.isArray(j?.entities) ? `${j.entities.length} title(s) at ${pc}${j.entities.length ? '' : ' (no coverage here yet – normal)'}` : null) },
+  { soft: !!config.constraintsUrl, name: 'planning.data.gov.uk (tree-preservation-zone, live fallback)', url: `https://www.planning.data.gov.uk/entity.json?dataset=tree-preservation-zone&longitude=${lng}&latitude=${lat}&limit=5`, ok: (j) => (Array.isArray(j?.entities) ? `${j.entities.length} zone(s) at ${pc}` : null) },
+  { soft: !!config.constraintsUrl, name: 'planning.data.gov.uk (constraints, live fallback)', url: 'https://www.planning.data.gov.uk/entity.json?longitude=-0.1276&latitude=51.5034&dataset=conservation-area&limit=1', ok: (j) => (Array.isArray(j?.entities) ? `${j.entities.length} entity` : null) },
 ];
 
 console.log(`\nChecking live services from this machine (postcode ${pc}, UA "${config.userAgent}")\n`);
@@ -39,8 +51,8 @@ for (const t of tests) {
     else if (t.binary) { const b = await res.arrayBuffer(); status = b.byteLength > 500 ? 'OK' : 'FAIL'; detail = `${b.byteLength} bytes (${res.headers.get('content-type')})`; }
     else { const d = t.ok(await res.json().catch(() => null)); status = d ? 'OK' : 'FAIL'; detail = d ?? 'unexpected response'; }
   } catch (e) { detail = e.name === 'TimeoutError' ? `no answer in ${TIMEOUT / 1000}s` : e.message; }
-  results.push({ name: t.name, status, ms: Date.now() - t0, detail, url: t.mirror ? t.url : null });
-  console.log(`${status === 'OK' ? '✅' : '❌'} ${t.name.padEnd(42)} ${String(Date.now() - t0).padStart(6)} ms  ${detail}`);
+  results.push({ soft: !!t.soft, name: t.name, status, ms: Date.now() - t0, detail, url: t.mirror ? t.url : null });
+  console.log(`${status === 'OK' ? '✅' : '❌'} ${t.name.padEnd(54)} ${String(Date.now() - t0).padStart(6)} ms  ${detail}`);
 }
 
 const overpassOk = results.filter((r) => r.name.startsWith('Overpass') && r.status === 'OK').length;
@@ -68,7 +80,15 @@ else {
   const good = results.filter((r) => r.url && r.status === 'OK').sort((a, b) => a.ms - b.ms).map((r) => r.url);
   console.log('• Put this in your .env so only mirrors that answer from your network are used (fastest first):\n  OVERPASS_URLS=' + good.join(','));
 }
+const mirrorRows = results.filter((r) => r.name.startsWith('Constraints MIRROR'));
+const liveRows = results.filter((r) => r.name.startsWith('planning.data.gov.uk'));
+if (config.constraintsUrl && !config.constraintsKey) console.log('• CONSTRAINTS_URL is set but CONSTRAINTS_KEY is empty: the mirror is OFF. Set both.');
+else if (!config.constraintsUrl) console.log('• Constraints mirror not configured (CONSTRAINTS_URL / CONSTRAINTS_KEY): constraints, tree zones and titles use planning.data.gov.uk only.');
+else if (mirrorRows.length && mirrorRows.every((r) => r.status === 'OK')) {
+  console.log('• Constraints mirror answers: conservation areas, listed buildings, tree zones and (London) titles do not depend on planning.data.gov.uk.');
+  if (liveRows.some((r) => r.status !== 'OK')) console.log('  planning.data.gov.uk itself is failing: the other constraint datasets (Article 4, flood, green belt, ...) and individual protected trees still need it, so the constraint check can report "temporarily unavailable" until it is back.');
+} else console.log('• Constraints mirror NOT answering from this machine: check CONSTRAINTS_URL / CONSTRAINTS_KEY (a 401 means the key differs from ~/constraints/.env on the server). The app falls back to planning.data.gov.uk.');
 if (results.find((r) => r.name.startsWith('Photon'))?.status !== 'OK') console.log('• Photon failed: free-text address type-ahead will be unavailable; full-postcode search and manual entry still work.');
 if (results.find((r) => r.name.startsWith('Esri'))?.status !== 'OK') console.log('• Esri aerial failed: set AERIAL_PROVIDER=google (needs a key) or check your firewall.');
 console.log('');
-process.exit(results.every((r) => r.status === 'OK') ? 0 : 1);
+process.exit(results.every((r) => r.status === 'OK' || r.soft) ? 0 : 1);

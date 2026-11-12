@@ -1,0 +1,29 @@
+{
+  "id": "rear-eaves-3m4-near-boundary",
+  "title": "Eaves over 3 m within 2 m of a boundary",
+  "kind": "legislation",
+  "basis": "Class A.1(i)",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_extension",
+      "storeys": 1,
+      "depthM": 3,
+      "widthM": 4,
+      "heightM": 3.4,
+      "eavesHeightM": 3.4,
+      "distanceToSideBoundaryM": 1.5,
+      "additionsAreaM2": 15
+    }
+  },
+  "expect": {
+    "verdict": "planning_permission",
+    "checks": {
+      "eaves": "fail"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "id": "gate-listed",
+  "title": "Listed building",
+  "kind": "legislation",
+  "basis": "Householder rights do not apply to listed buildings",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_extension",
+      "storeys": 1,
+      "depthM": 3,
+      "widthM": 4,
+      "heightM": 3.4,
+      "eavesHeightM": 2.8,
+      "distanceToSideBoundaryM": 3,
+      "additionsAreaM2": 15
+    },
+    "flags": {
+      "listedBuilding": true
+    }
+  },
+  "expect": {
+    "verdict": "listed_building_consent",
+    "checks": {
+      "listed": "fail"
+    }
+  }
+}

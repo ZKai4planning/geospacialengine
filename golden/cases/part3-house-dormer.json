@@ -1,0 +1,27 @@
+{
+  "id": "part3-house-dormer",
+  "title": "Dormer on a house created under a Part 3 right",
+  "kind": "legislation",
+  "basis": "Class B.1(a)",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_dormer",
+      "widthM": 3.5,
+      "depthM": 2.5,
+      "heightM": 2.3,
+      "volumeM3": 30,
+      "convertedUnderPart3": true
+    }
+  },
+  "expect": {
+    "verdict": "planning_permission",
+    "checks": {
+      "dwelling-origin": "fail"
+    }
+  }
+}

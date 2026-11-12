@@ -13,7 +13,7 @@ const client = new pg.Client(pgConfig(url, { ssl: process.env.DATABASE_SSL === '
 try {
   await client.connect();
   await client.query(fs.readFileSync(new URL('../db/schema.sql', import.meta.url), 'utf8'));
-  const { rows } = await client.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('uprn','uprn_meta','applications') ORDER BY 1");
+  const { rows } = await client.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('uprn','uprn_meta','applications','inspire_parcels','inspire_meta') ORDER BY 1");
   console.log(`Schema applied. Tables present: ${rows.map((r) => r.table_name).join(', ')}`);
 } catch (e) {
   console.error('Could not apply schema:', e.message);

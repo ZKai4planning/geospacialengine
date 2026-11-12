@@ -1,0 +1,29 @@
+{
+  "id": "rear-two-storey-ok",
+  "title": "Two-storey rear extension: 3 m deep, 8 m from the rear boundary",
+  "kind": "legislation",
+  "basis": "Class A.1(h)",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_extension",
+      "storeys": 2,
+      "depthM": 3,
+      "widthM": 4,
+      "heightM": 6,
+      "distanceToRearBoundaryM": 8,
+      "additionsAreaM2": 15
+    }
+  },
+  "expect": {
+    "verdict": "permitted_development",
+    "checks": {
+      "rear-depth": "pass",
+      "rear-boundary": "pass"
+    }
+  }
+}

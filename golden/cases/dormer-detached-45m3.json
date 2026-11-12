@@ -1,0 +1,26 @@
+{
+  "id": "dormer-detached-45m3",
+  "title": "Rear dormer on a detached house, 45 m\u00b3",
+  "kind": "legislation",
+  "basis": "Class B.1(d)(ii): other houses 50 m\u00b3",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "detached",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_dormer",
+      "widthM": 3,
+      "depthM": 3,
+      "heightM": 2,
+      "volumeM3": 45
+    }
+  },
+  "expect": {
+    "verdict": "permitted_development",
+    "checks": {
+      "roof-volume": "pass"
+    }
+  }
+}

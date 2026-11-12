@@ -30,6 +30,20 @@ export function createMockProviders() {
       },
       async byId(id) { return DB.find((a) => a.id === id) ?? null; },
     },
+    constraintAreas: { name: 'mock', async findNear({ lat, lng }) {
+      const sq = (n, s_, e, w) => { const ky = 111320, kx = 111320 * Math.cos((lat * Math.PI) / 180), r = [[w, s_], [e, s_], [e, n], [w, n]].map(([x, y]) => [lng + x / kx, lat + y / ky]); return [...r, r[0]]; };
+      const mk = (dataset, label, rings, details = {}) => ({ id: `area-mock-${dataset}`, dataset, entity: 1, reference: null, name: label, label, details, rings: [rings], url: 'https://www.planning.data.gov.uk/entity/1' });
+      return [mk('conservation-area', 'Conservation area', sq(80, -80, 90, -90)), mk('article-4-direction-area', 'Article 4 direction area', sq(80, -80, 90, -90), { rights: 'Class A (extensions), Class B (roof additions)', notes: 'Mock direction for demonstration.' }),
+        mk('flood-risk-zone', 'Flood zone 2', sq(120, 30, 150, -150), { level: '2' })];
+    } },
+    planning: { name: 'mock', async findHistory() {
+      const rec = (o) => ({ ref: 'MOCK/1', council: 'Newham', address: '1 Example Road, London E6 2AA', postcode: 'E6 2AA', description: '', appType: 'Full', size: 'Small', state: 'Permitted', outcome: 'approved', receivedOn: '2019-02-01', decidedOn: '2019-04-02', lat: 51.539, lng: 0.059, distanceM: 40, councilUrl: 'https://example.invalid/register', planitUrl: null, kind: null, lawful: false, prior: false, flats: false, newDwelling: false, ...o });
+      return { here: [rec({ ref: 'MOCK/H1', address: '22 Example Road, London E6 2AA', description: 'Single storey rear extension', kind: 'rear', receivedOn: '2012-05-01', decidedOn: '2012-07-10', distanceM: 0 })], building: [],
+        nearby: [rec({ ref: 'MOCK/N1', description: 'Single storey rear extension', kind: 'rear', decidedOn: '2022-03-01' }), rec({ ref: 'MOCK/N2', description: 'Two storey rear extension', kind: 'rear', outcome: 'refused', state: 'Rejected', decidedOn: '2021-09-01' }), rec({ ref: 'MOCK/N3', description: 'Rear extension and loft conversion', kind: 'rear', decidedOn: '2023-06-01' }), rec({ ref: 'MOCK/N4', description: 'Single storey rear extension', kind: 'rear', decidedOn: '2024-01-15' })],
+        radiusM: 150, years: 10, source: 'planit', attribution: 'Planning application data from council registers, aggregated by PlanIt (planit.org.uk). Check PlanIt\'s terms of use.' };
+    } },
+    landRegistry: { name: 'mock', async findSales() { return { sales: [{ transactionId: 'mock-1', priceGbp: 425000, date: '2021-06-18', propertyType: 'terraced', tenure: 'freehold', newBuild: false, paon: '22', street: 'EXAMPLE ROAD', town: 'LONDON', postcode: 'E6 2AA' }], street: { name: 'EXAMPLE ROAD', town: 'LONDON', years: 5, type: 'terraced', stats: { count: 12, medianGbp: 465000, p25Gbp: 440000, p75Gbp: 490000, minGbp: 410000, maxGbp: 540000 }, allTypesStats: null }, source: 'land-registry-ppd', attribution: 'Contains HM Land Registry data © Crown copyright and database right. Licensed under the Open Government Licence v3.0.' }; } },
+    epc: { name: 'mock', async findByAddress() { return { uprn: null, address: '22 Example Road', propertyType: 'House', builtForm: 'Mid-Terrace', habitableRooms: 5, floorAreaM2: 86, ageBand: 'England and Wales: 1900-1929', extensionCount: 0, lodgedOn: '2021-05-01', source: 'epc', matchedBy: 'address' }; } },
     postcodes: {
       name: 'mock',
       async lookup(pc) {
@@ -52,10 +66,23 @@ export function createMockProviders() {
           ],
           footprint: { source: 'mock', osmId: null, ring, areaM2: Math.round(ringAreaM2(ring)), levels: 2, roofShape: 'gabled', buildingType: 'terrace' },
           roads: [[[lng - 0.0004, lat - 0.0001], [lng + 0.0004, lat - 0.0001]]], // street runs along the south side
+          roadDetails: [{ osmId: null, name: 'Example Road', highway: 'residential', widthM: 5.5, widthSource: 'assumed', ignore: false, line: [[lng - 0.0004, lat - 0.0001], [lng + 0.0004, lat - 0.0001]] }],
+          trees: [ // one tree in the rear garden, 6 m behind the back wall (0.5 m trunk -> 6 m root zone)
+            { osmId: null, lng, lat: lat + dLat + 6 / 111320, trunkDiameterM: 0.5, crownDiameterM: null, species: 'Silver birch' },
+          ],
         };
       },
     },
     planningData: { name: 'mock', async entitiesAt() { return []; } },
+    protectedTrees: {
+      name: 'mock',
+      async findNear({ lat, lng }) { // a "group" tree preservation zone at the bottom of the rear garden (7-10 m behind the back wall)
+        const dLat = 0.0000404, dLng = 0.000036, m = 1 / 111320;
+        const ring = [[lng - dLng, lat + dLat + 7 * m], [lng + dLng, lat + dLat + 7 * m], [lng + dLng, lat + dLat + 10 * m], [lng - dLng, lat + dLat + 10 * m], [lng - dLng, lat + dLat + 7 * m]];
+        return { zones: [{ id: 'tpo-zone-mock', entity: null, reference: 'TPO-MOCK-G1', name: 'G1', type: 'group', order: 'TPO-MOCK', rings: [ring], url: null }], trees: [] };
+      },
+    },
+    lidar: { name: 'mock', async measure() { return { status: 'ok', roofShape: 'pitched', eavesM: 5.2, ridgeM: 8.1, groundOdnM: 6.4, groundFallM: 0.6, contrastM: 5.1, shift: [0, 0], shiftM: 0, confidence: 'high', cells: 40, source: 'Sample LiDAR heights (mock data)' }; } },
     parcels: { name: 'mock', async findPlot() { return { areaM2: 156, source: 'mock' }; } },
     titles: {
       name: 'mock',

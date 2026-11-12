@@ -1,0 +1,29 @@
+{
+  "id": "rear-eaves-3m4-far-from-boundary",
+  "title": "Eaves over 3 m are fine if more than 2 m from the boundary",
+  "kind": "legislation",
+  "basis": "Class A.1(i) only applies within 2 m",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_extension",
+      "storeys": 1,
+      "depthM": 3,
+      "widthM": 4,
+      "heightM": 3.4,
+      "eavesHeightM": 3.4,
+      "distanceToSideBoundaryM": 3,
+      "additionsAreaM2": 15
+    }
+  },
+  "expect": {
+    "verdict": "permitted_development",
+    "checks": {
+      "eaves": "pass"
+    }
+  }
+}

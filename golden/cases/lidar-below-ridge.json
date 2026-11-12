@@ -1,0 +1,38 @@
+{
+  "id": "lidar-below-ridge",
+  "title": "Extension clearly below the measured ridge",
+  "kind": "legislation",
+  "basis": "Class A.1(c): no higher than the highest part of the existing roof",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_extension",
+      "storeys": 1,
+      "depthM": 3,
+      "widthM": 4,
+      "heightM": 3.4,
+      "eavesHeightM": 2.8,
+      "distanceToSideBoundaryM": 3,
+      "additionsAreaM2": 15
+    },
+    "existingRoof": {
+      "source": "lidar",
+      "confidence": "high",
+      "toleranceM": 0.5,
+      "ridgeM": 8.1,
+      "eavesM": 5.2,
+      "roofShape": "pitched",
+      "groundFallM": 0.2
+    }
+  },
+  "expect": {
+    "verdict": "permitted_development",
+    "checks": {
+      "existing-height": "pass"
+    }
+  }
+}

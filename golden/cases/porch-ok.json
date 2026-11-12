@@ -1,0 +1,28 @@
+{
+  "id": "porch-ok",
+  "title": "Porch: 2.4 m\u00b2 footprint, 2.8 m high, 4 m from the road",
+  "kind": "legislation",
+  "basis": "Class D.1: 3 m\u00b2 floor area, 3 m high, 2 m from the highway boundary",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "front_porch",
+      "widthM": 1.6,
+      "depthM": 1.5,
+      "heightM": 2.8,
+      "distanceToHighwayM": 4
+    }
+  },
+  "expect": {
+    "verdict": "permitted_development",
+    "checks": {
+      "porch-area": "pass",
+      "porch-height": "pass",
+      "porch-highway": "pass"
+    }
+  }
+}

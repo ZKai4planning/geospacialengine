@@ -1,0 +1,36 @@
+{
+  "id": "unanswered-questions-warn",
+  "title": "Form questions left at 'Not checked' keep the result unconfirmed",
+  "kind": "legislation",
+  "basis": "A.1(a), A.1(e), A.1(k), public right of way",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_extension",
+      "storeys": 1,
+      "depthM": 3,
+      "widthM": 4,
+      "heightM": 3.4,
+      "eavesHeightM": 2.8,
+      "distanceToSideBoundaryM": 3,
+      "additionsAreaM2": 15,
+      "cladding": "none",
+      "beyondFront": "unknown",
+      "hasProhibited": "unknown",
+      "convertedUnderPart3": "unknown",
+      "crossesRightOfWay": "unknown"
+    },
+    "flags": {}
+  },
+  "expect": {
+    "verdict": "permitted_development",
+    "confidence": "needs_confirmation",
+    "checks": {
+      "details-unconfirmed": "warn"
+    }
+  }
+}

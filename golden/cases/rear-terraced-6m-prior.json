@@ -1,0 +1,26 @@
+{
+  "id": "rear-terraced-6m-prior",
+  "title": "Terraced, exactly 6 m is still within prior approval",
+  "kind": "legislation",
+  "basis": "Class A.1(g): up to 6 m (attached)",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_extension",
+      "storeys": 1,
+      "depthM": 6,
+      "widthM": 4,
+      "heightM": 3.4,
+      "eavesHeightM": 2.8,
+      "distanceToSideBoundaryM": 3,
+      "additionsAreaM2": 15
+    }
+  },
+  "expect": {
+    "verdict": "prior_approval"
+  }
+}

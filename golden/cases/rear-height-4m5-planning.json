@@ -1,0 +1,29 @@
+{
+  "id": "rear-height-4m5-planning",
+  "title": "Single storey over 4 m high",
+  "kind": "legislation",
+  "basis": "Class A.1(f)(ii)... single-storey rear: not more than 4 m",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_extension",
+      "storeys": 1,
+      "depthM": 3,
+      "widthM": 4,
+      "heightM": 4.5,
+      "eavesHeightM": 2.8,
+      "distanceToSideBoundaryM": 3,
+      "additionsAreaM2": 15
+    }
+  },
+  "expect": {
+    "verdict": "planning_permission",
+    "checks": {
+      "height": "fail"
+    }
+  }
+}

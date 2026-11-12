@@ -1,0 +1,36 @@
+{
+  "id": "wall-clear",
+  "title": "2 m gap: nothing flagged",
+  "kind": "legislation",
+  "basis": "Approved Document B (guidance)",
+  "type": "site",
+  "input": {
+    "house": [
+      0,
+      0,
+      5,
+      9
+    ],
+    "proposal": [
+      0,
+      9,
+      5,
+      13
+    ],
+    "neighbours": [
+      [
+        7,
+        0,
+        12,
+        13
+      ]
+    ]
+  },
+  "expect": {
+    "walls": {
+      "east": "clear",
+      "west": "clear"
+    },
+    "wallSafety": "ok"
+  }
+}

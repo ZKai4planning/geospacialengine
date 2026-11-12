@@ -11,7 +11,11 @@ import { upstream } from '../utils/errors.js';
  * Always sends a descriptive User-Agent (HTTP_USER_AGENT) – anonymous clients are rejected with 406.
  */
 export function overpass(query, { timeoutMs = config.overpassTimeoutMs, hedgeMs = 4000 } = {}) {
-  const urls = config.overpassUrls;
+  // Your own server first (with its key), then the public mirrors.
+  const endpoints = [
+    ...(config.overpassSelfUrl ? [{ url: config.overpassSelfUrl, headers: config.overpassSelfKey ? { 'x-api-key': config.overpassSelfKey } : {} }] : []),
+    ...config.overpassUrls.filter((u) => u !== config.overpassSelfUrl).map((url) => ({ url, headers: {} })),
+  ];
   return new Promise((resolve, reject) => {
     const ctls = [];
     let started = 0, pending = 0, done = false, lastErr, timer;
@@ -27,18 +31,18 @@ export function overpass(query, { timeoutMs = config.overpassTimeoutMs, hedgeMs 
     const startNext = () => {
       if (done) return;
       clearTimeout(timer);
-      if (started >= urls.length) {
+      if (started >= endpoints.length) {
         if (pending === 0) finish(reject, lastErr ?? upstream('Overpass is unavailable'));
         return;
       }
-      const url = urls[started++];
+      const { url, headers: extra } = endpoints[started++];
       const ctl = new AbortController();
       ctls.push(ctl);
       pending++;
       timer = setTimeout(startNext, hedgeMs); // slow? also try the next mirror
       fetchJson(url, {
         method: 'POST', body: new URLSearchParams({ data: query }),
-        headers: { accept: '*/*' }, timeoutMs, retries: 0, signal: ctl.signal,
+        headers: { accept: '*/*', ...extra }, timeoutMs, retries: 0, signal: ctl.signal,
       })
         .then((data) => { if (!data) throw new Error('empty response'); finish(resolve, data); })
         .catch((e) => {

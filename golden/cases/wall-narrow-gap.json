@@ -1,0 +1,37 @@
+{
+  "id": "wall-narrow-gap",
+  "title": "0.6 m gap to the neighbouring building",
+  "kind": "legislation",
+  "basis": "Approved Document B (guidance): walls closer than 1 m",
+  "type": "site",
+  "input": {
+    "house": [
+      0,
+      0,
+      5,
+      9
+    ],
+    "proposal": [
+      0,
+      9,
+      5,
+      13
+    ],
+    "neighbours": [
+      [
+        5.6,
+        0,
+        10,
+        13
+      ]
+    ]
+  },
+  "expect": {
+    "walls": {
+      "east": "close_neighbour"
+    },
+    "items": [
+      "too narrow to maintain"
+    ]
+  }
+}

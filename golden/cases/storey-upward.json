@@ -1,0 +1,23 @@
+{
+  "id": "storey-upward",
+  "title": "Adding a storey",
+  "kind": "legislation",
+  "basis": "Class AA is a narrow prior-approval route; otherwise planning permission",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "additional_storey"
+    }
+  },
+  "expect": {
+    "verdict": "planning_permission",
+    "confidence": "needs_confirmation",
+    "checks": {
+      "upward": "warn"
+    }
+  }
+}

@@ -1,6 +1,5 @@
-import { fetchJson } from '../utils/http.js';
-
-const BASE = 'https://www.planning.data.gov.uk/entity.json';
+import { fetchJson as defaultFetchJson } from '../utils/http.js';
+import { entityUrl, isCurrent } from '../utils/planningDataApi.js';
 
 export const CONSTRAINT_DATASETS = [
   'conservation-area',
@@ -17,19 +16,19 @@ export const CONSTRAINT_DATASETS = [
 ];
 
 /** planning.data.gov.uk – national planning constraints that intersect a point. */
-export function createPlanningData() {
+export function createPlanningData({ fetchJson = defaultFetchJson } = {}) {
   return {
     name: 'planning.data.gov.uk',
-    async entitiesAt({ lat, lng }) {
-      const u = new URL(BASE);
-      u.searchParams.set('longitude', String(lng));
-      u.searchParams.set('latitude', String(lat));
-      u.searchParams.set('limit', '100');
-      for (const d of CONSTRAINT_DATASETS) u.searchParams.append('dataset', d);
-      const data = await fetchJson(u.toString(), { timeoutMs: 10000 });
-      const today = new Date().toISOString().slice(0, 10);
+    async entitiesAt({ lat, lng, datasets = CONSTRAINT_DATASETS }) {
+      // We only need to know WHICH constraints apply, not their outlines (a conservation area can be 60 KB of WKT),
+      // so ask the API to leave geometry out: `exclude_field` is part of the documented API.
+      const data = await fetchJson(entityUrl([
+        ['longitude', lng], ['latitude', lat], ['limit', 100],
+        ...datasets.map((d) => ['dataset', d]),
+        ['exclude_field', 'geometry'], ['exclude_field', 'point'],
+      ]), { timeoutMs: 10000 });
       return (data?.entities ?? [])
-        .filter((e) => !e['end-date'] || e['end-date'] > today)
+        .filter((e) => isCurrent(e))
         .map((e) => ({
           dataset: e.dataset,
           entity: e.entity,

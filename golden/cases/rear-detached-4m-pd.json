@@ -1,0 +1,29 @@
+{
+  "id": "rear-detached-4m-pd",
+  "title": "Detached, 4 m is permitted development",
+  "kind": "legislation",
+  "basis": "Class A.1(f): 4 m for detached houses",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "detached",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_extension",
+      "storeys": 1,
+      "depthM": 4,
+      "widthM": 4,
+      "heightM": 3.4,
+      "eavesHeightM": 2.8,
+      "distanceToSideBoundaryM": 3,
+      "additionsAreaM2": 15
+    }
+  },
+  "expect": {
+    "verdict": "permitted_development",
+    "checks": {
+      "rear-depth": "pass"
+    }
+  }
+}

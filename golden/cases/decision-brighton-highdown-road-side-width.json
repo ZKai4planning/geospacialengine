@@ -1,0 +1,32 @@
+{
+  "id": "decision-brighton-highdown-road-side-width",
+  "title": "Side extension 7.94 m wide on a 12.4 m wide house (Highdown Road, Hove)",
+  "kind": "decision",
+  "basis": "Appeal APP/Q1445/X/16/3165939, Highdown Road, Hove BN3 6EE, decided 2 May 2017, LDC appeal dismissed: A.1(j) failed, width 7.94 m against original dwelling width 12.4 m (more than half). The decision also failed A.1(e) (beyond the principal elevation), now tested as a second expectation. Depth, heights and house form are placeholders.",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "detached",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 400,
+    "proposal": {
+      "type": "side_extension",
+      "storeys": 1,
+      "widthM": 7.94,
+      "depthM": 6,
+      "heightM": 3.5,
+      "eavesHeightM": 2.8,
+      "distanceToSideBoundaryM": 1.5,
+      "additionsAreaM2": 47,
+      "beyondFront": true
+    },
+    "houseWidthM": 12.4
+  },
+  "expect": {
+    "verdict": "planning_permission",
+    "checks": {
+      "side-width": "fail",
+      "principal-elevation": "fail"
+    }
+  }
+}

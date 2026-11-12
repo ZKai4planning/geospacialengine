@@ -1,0 +1,29 @@
+{
+  "id": "dormer-art23",
+  "title": "Rear dormer in a conservation area",
+  "kind": "legislation",
+  "basis": "Class B.2(a): not permitted on article 2(3) land",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_dormer",
+      "widthM": 3,
+      "depthM": 3,
+      "heightM": 2,
+      "volumeM3": 30
+    },
+    "flags": {
+      "article23Land": true
+    }
+  },
+  "expect": {
+    "verdict": "planning_permission",
+    "checks": {
+      "roof-protected": "fail"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "rear-detached-8m5-planning",
+  "title": "Detached, 8.5 m needs planning permission",
+  "kind": "legislation",
+  "basis": "Class A.1(g): more than 8 m",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "detached",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_extension",
+      "storeys": 1,
+      "depthM": 8.5,
+      "widthM": 4,
+      "heightM": 3.4,
+      "eavesHeightM": 2.8,
+      "distanceToSideBoundaryM": 3,
+      "additionsAreaM2": 15
+    }
+  },
+  "expect": {
+    "verdict": "planning_permission"
+  }
+}

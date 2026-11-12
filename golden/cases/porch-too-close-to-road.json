@@ -1,0 +1,26 @@
+{
+  "id": "porch-too-close-to-road",
+  "title": "Porch only 1 m from the highway boundary",
+  "kind": "legislation",
+  "basis": "Class D.1(d)",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "front_porch",
+      "widthM": 1.6,
+      "depthM": 1.5,
+      "heightM": 2.8,
+      "distanceToHighwayM": 1
+    }
+  },
+  "expect": {
+    "verdict": "planning_permission",
+    "checks": {
+      "porch-highway": "fail"
+    }
+  }
+}

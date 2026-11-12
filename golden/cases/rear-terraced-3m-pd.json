@@ -1,0 +1,31 @@
+{
+  "id": "rear-terraced-3m-pd",
+  "title": "Terraced house, 3 m single-storey rear extension",
+  "kind": "legislation",
+  "basis": "Class A.1(f): 3 m limit for attached houses",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_extension",
+      "storeys": 1,
+      "depthM": 3,
+      "widthM": 4,
+      "heightM": 3.4,
+      "eavesHeightM": 2.8,
+      "distanceToSideBoundaryM": 3,
+      "additionsAreaM2": 15
+    }
+  },
+  "expect": {
+    "verdict": "permitted_development",
+    "confidence": "high",
+    "checks": {
+      "rear-depth": "pass",
+      "height": "pass"
+    }
+  }
+}

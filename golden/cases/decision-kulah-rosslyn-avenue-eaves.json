@@ -1,0 +1,39 @@
+{
+  "id": "decision-kulah-rosslyn-avenue-eaves",
+  "title": "Side extension eaves 3.05 m vs existing 2.90 m (18 Rosslyn Avenue, Chingford)",
+  "kind": "decision",
+  "basis": "Appeal against enforcement notice, London Borough of Waltham Forest, Inspector decision 18 Feb 2021, upheld on ground (c): extension eaves (3.045-3.055 m) higher than existing eaves (2.900 m) so A.1(d) fails; confirmed Kulah v SSHCLG [2021] EWHC 3028 (Admin), 15 Nov 2021. The judgment does not give width, depth or house form: those inputs are placeholders and do not affect A.1(d).",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "semi-detached",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 200,
+    "proposal": {
+      "type": "side_extension",
+      "storeys": 1,
+      "widthM": 2.5,
+      "depthM": 5,
+      "heightM": 3.4,
+      "eavesHeightM": 3.05,
+      "distanceToSideBoundaryM": 0.5,
+      "additionsAreaM2": 13
+    },
+    "houseWidthM": 7,
+    "existingRoof": {
+      "source": "survey",
+      "confidence": "high",
+      "toleranceM": 0.05,
+      "ridgeM": 5.2,
+      "eavesM": 2.9,
+      "roofShape": "pitched",
+      "groundFallM": 0
+    }
+  },
+  "expect": {
+    "verdict": "planning_permission",
+    "checks": {
+      "existing-eaves": "fail"
+    }
+  }
+}

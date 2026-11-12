@@ -145,6 +145,7 @@ export function createAddressService({ providers, uprnMatcher = null }) {
 
   return {
     postcodeInfo: (pc) => cached(`pcinfo:${pc}`, () => postcodes.lookup(pc), 86400),
+    authorityAt: ({ lat, lng }) => cached(`auth:${lat.toFixed(3)},${lng.toFixed(3)}`, () => postcodes.reverse({ lat, lng }), 86400),
 
     /** Enter a full postcode -> list every address at it. */
     async byPostcode(input) {

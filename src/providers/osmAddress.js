@@ -21,7 +21,7 @@ function fromTags({ osmType, osmId, tags, lat, lng, postcodeFallback = null }) {
     organisation: null, subBuilding: tags['addr:unit'] || null, buildingName: name || null,
     buildingNumber: num || null, thoroughfare: street || null, dependentLocality: null,
     postTown: town, postcode, lat, lng, easting: null, northing: null, localCustodian: null,
-    classification: classifyOsm(tags.building),
+    classification: classifyOsm(tags.building, tags),
   };
 }
 

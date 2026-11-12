@@ -1,0 +1,33 @@
+{
+  "id": "article4-needs-confirmation",
+  "title": "Article 4 direction: permitted development may have been withdrawn",
+  "kind": "legislation",
+  "basis": "Article 4 directions remove rights; only the council can confirm",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_extension",
+      "storeys": 1,
+      "depthM": 3,
+      "widthM": 4,
+      "heightM": 3.4,
+      "eavesHeightM": 2.8,
+      "distanceToSideBoundaryM": 3,
+      "additionsAreaM2": 15
+    },
+    "flags": {
+      "article4": true
+    }
+  },
+  "expect": {
+    "verdict": "permitted_development",
+    "confidence": "needs_confirmation",
+    "checks": {
+      "article4": "warn"
+    }
+  }
+}

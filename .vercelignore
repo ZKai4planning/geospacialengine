@@ -1,6 +1,7 @@
-data
-test
-scripts
+# .vercelignore
+/data
+/test
+/scripts
 node_modules
 .env
 .env.*

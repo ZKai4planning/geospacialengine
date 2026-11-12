@@ -1,0 +1,26 @@
+{
+  "id": "dormer-terraced-45m3",
+  "title": "Rear dormer on a terrace, 45 m\u00b3",
+  "kind": "legislation",
+  "basis": "Class B.1(d)(i): terraced houses 40 m\u00b3",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_dormer",
+      "widthM": 3,
+      "depthM": 3,
+      "heightM": 2,
+      "volumeM3": 45
+    }
+  },
+  "expect": {
+    "verdict": "planning_permission",
+    "checks": {
+      "roof-volume": "fail"
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "id": "lidar-above-ridge",
+  "title": "Two-storey extension 1.4 m above the measured ridge",
+  "kind": "legislation",
+  "basis": "Class A.1(c)",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_extension",
+      "storeys": 2,
+      "depthM": 3,
+      "widthM": 4,
+      "heightM": 9.5,
+      "distanceToRearBoundaryM": 9,
+      "additionsAreaM2": 15
+    },
+    "existingRoof": {
+      "source": "lidar",
+      "confidence": "high",
+      "toleranceM": 0.5,
+      "ridgeM": 8.1,
+      "eavesM": 5.2,
+      "roofShape": "pitched",
+      "groundFallM": 0.2
+    }
+  },
+  "expect": {
+    "verdict": "planning_permission",
+    "checks": {
+      "existing-height": "fail"
+    }
+  }
+}

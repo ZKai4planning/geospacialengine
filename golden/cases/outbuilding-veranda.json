@@ -1,0 +1,30 @@
+{
+  "id": "outbuilding-veranda",
+  "title": "Outbuilding with a veranda or raised platform",
+  "kind": "legislation",
+  "basis": "Class E.1(g)",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "outbuilding",
+      "widthM": 3,
+      "depthM": 3,
+      "heightM": 2.5,
+      "roof": "flat",
+      "setbackM": 5,
+      "distanceToBoundaryM": 3,
+      "additionsAreaM2": 9,
+      "raisedPlatform": true
+    }
+  },
+  "expect": {
+    "verdict": "planning_permission",
+    "checks": {
+      "out-platforms": "fail"
+    }
+  }
+}

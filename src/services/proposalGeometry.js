@@ -53,6 +53,23 @@ function nearestRoadDirection(center, roadsLocal) {
   return best ? norm([best.p[0] - center[0], best.p[1] - center[1]]) : null;
 }
 
+/** One entry per road: distance to the house and the direction towards it, nearest first. */
+function roadCandidates(center, roadsLocal) {
+  const out = [];
+  for (const line of roadsLocal) {
+    let best = null;
+    for (let i = 0; i < line.length - 1; i++) {
+      const [ax, ay] = line[i], [bx, by] = line[i + 1];
+      const dx = bx - ax, dy = by - ay, len2 = dx * dx + dy * dy || 1;
+      const t = Math.max(0, Math.min(1, ((center[0] - ax) * dx + (center[1] - ay) * dy) / len2));
+      const p = [ax + t * dx, ay + t * dy], d = Math.hypot(p[0] - center[0], p[1] - center[1]);
+      if (!best || d < best.d) best = { d, dir: norm([p[0] - center[0], p[1] - center[1]]) };
+    }
+    if (best) out.push(best);
+  }
+  return out.sort((a, b) => a.d - b.d);
+}
+
 const SYNTHETIC = { widthM: 5.5, depthM: 9 }; // typical terrace when no outline exists
 
 /**
@@ -70,12 +87,15 @@ export function buildFrame({ address, footprint, roads = [], camera = null, fron
   const center = rect ? rect.center : [0, 0];
 
   // 1. which way is the FRONT of the house facing?
-  let f = null, frontSource = 'assumed';
+  let f = null, frontSource = 'assumed', corner = false;
   if (frontBearingDeg != null) { f = [Math.sin(rad(frontBearingDeg)), Math.cos(rad(frontBearingDeg))]; frontSource = 'user'; }
   if (!f && roads.length) {
     const roadsLocal = roads.map((line) => line.map(([lng, lat]) => toLocal(lng, lat)));
     f = nearestRoadDirection(center, roadsLocal);
     if (f) frontSource = 'road';
+    // a corner house: two roads close by on different sides (not one road split in two, not a road at the back)
+    const cands = roadCandidates(center, roadsLocal);
+    corner = cands.length >= 2 && cands[0].d <= 20 && cands[1].d <= 20 && Math.abs(dot(cands[0].dir, cands[1].dir)) <= 0.7;
   }
   if (!f && camera) {
     const c = toLocal(camera.lng, camera.lat);
@@ -97,8 +117,15 @@ export function buildFrame({ address, footprint, roads = [], camera = null, fron
   const rearMid = [center[0] + r[0] * (D / 2), center[1] + r[1] * (D / 2)];
   const P = (s, d) => [rearMid[0] + t[0] * s + r[0] * d, rearMid[1] + t[1] * s + r[1] * d];
 
+  // inverse of P: lng/lat -> (s, d) in the house frame
+  const toSD = (lng, lat) => {
+    const [x, y] = toLocal(lng, lat);
+    const dx = x - rearMid[0], dy = y - rearMid[1];
+    return [dx * t[0] + dy * t[1], dx * r[0] + dy * r[1]];
+  };
+
   return {
-    origin, toLocal, toLngLat, P, W, D, synthetic: !rect, frontSource,
+    origin, toLocal, toLngLat, P, toSD, W, D, synthetic: !rect, frontSource, corner,
     frontBearingDeg: Math.round((deg(Math.atan2(f[0], f[1])) + 360) % 360),
   };
 }
@@ -147,6 +174,20 @@ const BUILDERS = {
 };
 
 /**
+ * Measures a polygon the applicant drew, in the house's own frame: s = across the plot, d = beyond the rear wall.
+ * `beyondRearM` is how far it reaches past the OSM outline's rear wall (0 if it stays in front of it).
+ */
+export function measureDrawn(ring, frame) {
+  const sd = ring.map(([lng, lat]) => frame.toSD(lng, lat));
+  const ss = sd.map((p) => p[0]), ds = sd.map((p) => p[1]);
+  const sMin = Math.min(...ss), sMax = Math.max(...ss), dMin = Math.min(...ds), dMax = Math.max(...ds);
+  return {
+    sMin, sMax, dMin, dMax, widthM: sMax - sMin, lengthM: dMax - dMin, beyondRearM: Math.max(0, dMax),
+    areaM2: Math.round(polyArea(sd) * 10) / 10,
+  };
+}
+
+/**
  * Turns the footprint, the existing extension and the applicant's proposal into map layers (lng/lat rings).
  * `existing.inOutline === false` means the OSM outline does NOT yet include the existing extension, so the
  * extension is drawn beyond the outline and new rear work starts after it.
@@ -177,7 +218,16 @@ export function buildLayers({ frame, footprint, existing, proposal }) {
     });
   }
 
-  if (proposal) {
+  if (proposal?.type === 'custom_polygon') {
+    // The applicant drew this on the map: it is an absolute position, not built relative to the house.
+    const ring = proposal.ring.map(([lng, lat]) => [lng, lat]);
+    ring.push(ring[0]);
+    const m = measureDrawn(ring.slice(0, -1), frame);
+    layers.push({
+      id: 'proposal', kind: 'proposal', workType: proposal.type, label: 'Your drawn area',
+      ring, areaM2: Math.round(ringAreaM2(ring) * 10) / 10, dims: { widthM: m.widthM, depthM: m.lengthM }, style: 'solid', absolute: true,
+    });
+  } else if (proposal) {
     const b = BUILDERS[proposal.type](proposal, frame, off);
     layers.push({
       id: 'proposal', kind: 'proposal', workType: proposal.type, label: WORK_TYPES[proposal.type].label,

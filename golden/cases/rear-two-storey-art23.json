@@ -1,0 +1,31 @@
+{
+  "id": "rear-two-storey-art23",
+  "title": "Two-storey rear extension in a conservation area",
+  "kind": "legislation",
+  "basis": "Class A.2: single storey only on article 2(3) land",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_extension",
+      "storeys": 2,
+      "depthM": 3,
+      "widthM": 4,
+      "heightM": 6,
+      "distanceToRearBoundaryM": 9,
+      "additionsAreaM2": 15
+    },
+    "flags": {
+      "article23Land": true
+    }
+  },
+  "expect": {
+    "verdict": "planning_permission",
+    "checks": {
+      "two-storey": "fail"
+    }
+  }
+}

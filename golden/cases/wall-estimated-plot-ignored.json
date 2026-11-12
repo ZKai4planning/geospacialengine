@@ -1,0 +1,34 @@
+{
+  "id": "wall-estimated-plot-ignored",
+  "title": "An estimated plot outline is never used as a boundary",
+  "kind": "legislation",
+  "basis": "An estimate must never decide anything",
+  "type": "site",
+  "input": {
+    "house": [
+      0,
+      0,
+      5,
+      9
+    ],
+    "proposal": [
+      0,
+      9,
+      5,
+      13
+    ],
+    "plot": [
+      0,
+      -10,
+      5,
+      25
+    ],
+    "plotEstimated": true
+  },
+  "expect": {
+    "wallSafety": "unchecked",
+    "items": [
+      "not checked"
+    ]
+  }
+}

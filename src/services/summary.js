@@ -1,4 +1,6 @@
+import { buildSources } from './sources.js';
 import { WORK_TYPES, describeProposal } from './workTypes.js';
+import { buildEngineTrace } from './engineTrace.js';
 
 const val = (v, suffix = '') => (v == null ? 'To confirm' : `${v}${suffix}`);
 const yn = (v) => (v == null ? 'To confirm' : v ? 'Yes' : 'No');
@@ -39,6 +41,7 @@ export function buildSummary(app) {
       },
       site: {
         imageUrl: `${base}/aerial?v=${viewKey}`,
+        mapImageUrl: `${base}/map?v=${viewKey}`, // street map of the same view (attribution is drawn into that picture)
         attribution: app.media.aerial?.attribution ?? null,
         rows: [
           { label: 'Original dwelling', value: yn(p.originalDwelling.value) },
@@ -50,8 +53,10 @@ export function buildSummary(app) {
     },
     map: {
       ...map,
-      frontNote: `Front of the house faces ${facing} (${{ road: 'from the nearest road', camera: 'from the street photo', user: 'set by you', assumed: 'assumed – please check' }[map.frame.frontSource]}).`,
+      frontNote: `Front of the house faces ${facing} (${{ road: 'from the nearest road', camera: 'from the street photo', user: 'set by you', assumed: 'assumed – please check' }[map.frame.frontSource]}).${map.frame.corner && map.frame.frontSource !== 'user' ? ' This looks like a corner house – please say which side the front door is on.' : ''}`,
     },
-    profile: p, proposal: pr, constraints: app.constraints, assessment: app.assessment, warnings: app.warnings,
+    profile: p, proposal: pr, constraints: app.constraints, assessment: app.assessment, areas: app.areas ?? null, interior: app.interior ?? null, interiorSetup: app.interiorSetup ?? null, epc: app.epc ?? null, ppd: app.ppd ?? null, history: app.history ?? null, useGate: app.useGate ?? null, warnings: app.warnings,
+    engine: buildEngineTrace(app),
+    sources: buildSources(app),
   };
 }

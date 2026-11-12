@@ -1,0 +1,26 @@
+{
+  "id": "porch-too-big",
+  "title": "Porch of 4.5 m\u00b2",
+  "kind": "legislation",
+  "basis": "Class D.1(b): ground area not more than 3 m\u00b2",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "front_porch",
+      "widthM": 3,
+      "depthM": 1.5,
+      "heightM": 2.8,
+      "distanceToHighwayM": 4
+    }
+  },
+  "expect": {
+    "verdict": "planning_permission",
+    "checks": {
+      "porch-area": "fail"
+    }
+  }
+}

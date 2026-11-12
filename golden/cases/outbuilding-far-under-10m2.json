@@ -1,0 +1,29 @@
+{
+  "id": "outbuilding-far-under-10m2",
+  "title": "Protected land: 8 m\u00b2 building 25 m from the house",
+  "kind": "legislation",
+  "basis": "Class E.1(j)",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "outbuilding",
+      "widthM": 4,
+      "depthM": 2,
+      "heightM": 2.5,
+      "roof": "flat",
+      "setbackM": 25,
+      "distanceToBoundaryM": 3,
+      "additionsAreaM2": 8
+    },
+    "flags": {
+      "article23Land": true
+    }
+  },
+  "expect": {
+    "verdict": "permitted_development"
+  }
+}

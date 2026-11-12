@@ -1,8 +1,11 @@
+import rateLimit from 'express-rate-limit';
 import { Router } from 'express';
 import { z } from 'zod';
 import { asyncH } from '../middleware/errorHandler.js';
 import { buildSummary } from '../services/summary.js';
 import { proposalSchema } from '../services/workTypes.js';
+import { buildEngineTrace } from '../services/engineTrace.js';
+import { interiorSchema } from '../services/interior/schema.js';
 
 const idPattern = /^(\d{1,12}|osm:(node|way|relation):\d{1,12})$/;
 const manualSchema = z.object({
@@ -25,6 +28,9 @@ const profileSchema = z.object({
   roofType: z.enum(['Pitched', 'Flat', 'Hipped', 'Mixed']).optional(),
   siteAreaM2: z.number().positive().max(100000).optional(),
   frontBearingDeg: z.number().min(0).max(360).optional(),
+  habitableRooms: z.number().int().min(1).max(30).nullable().optional(),   // for the council's garden-space test when there is no energy certificate
+  neighbourWindow: z.object({ lng: z.number().min(-180).max(180), lat: z.number().min(-90).max(90) }).nullable().optional(), // 45-degree test
+  isHouse: z.boolean().optional(), // applicant confirms (true) or rejects (false) that the building is a house
 });
 
 export function applicationRoutes({ applicationService, mediaService }) {
@@ -35,6 +41,13 @@ export function applicationRoutes({ applicationService, mediaService }) {
   r.post('/', asyncH(async (req, res) => {
     const body = createSchema.parse(req.body);
     send(res, await applicationService.create({ id: body.id ?? body.uprn, manual: body.manual }), 201);
+  }));
+
+  // Save everything entered so far as JSON, and start a new draft from such a file (the file's results are never trusted: see applicationExport.js)
+  r.post('/import', asyncH(async (req, res) => send(res, await applicationService.importJson(req.body), 201)));
+  r.get('/:id/export.json', asyncH(async (req, res) => {
+    const doc = await applicationService.exportJson(req.params.id);
+    res.set({ 'Content-Disposition': `attachment; filename="${doc.reference}.json"`, 'Cache-Control': 'private, no-store' }).json(doc);
   }));
 
   r.get('/:id', asyncH(async (req, res) => send(res, await applicationService.load(req.params.id))));
@@ -48,14 +61,42 @@ export function applicationRoutes({ applicationService, mediaService }) {
     send(res, await applicationService.setProposal(req.params.id, proposalSchema.parse(req.body)));
   }));
 
+  // The inside of the building (3D view): rooms, floors, roof and the interior checks; PATCH changes storeys, ceiling height, stair side, room names / uses
+  r.get('/:id/interior', asyncH(async (req, res) => {
+    const app = await applicationService.load(req.params.id);
+    res.json({ interior: buildSummary(app).interior });
+  }));
+  r.patch('/:id/interior', asyncH(async (req, res) => {
+    send(res, await applicationService.updateInterior(req.params.id, interiorSchema.parse(req.body)));
+  }));
+
+  // WHAT-IF: re-runs the engine on a changed proposal without saving it (sliders). Rate-limited separately because a slider is chatty.
+  const whatIfLimit = rateLimit({ windowMs: 60_000, limit: 240, standardHeaders: true, legacyHeaders: false });
+  r.post('/:id/what-if', whatIfLimit, asyncH(async (req, res) => res.set('Cache-Control', 'no-store').json(await applicationService.whatIf(req.params.id, proposalSchema.parse(req.body.proposal ?? req.body)))));
+  r.post('/:id/what-if/limits', whatIfLimit, asyncH(async (req, res) => {
+    const field = typeof req.body?.field === 'string' ? req.body.field : '';
+    res.set('Cache-Control', 'no-store').json(await applicationService.whatIfLimits(req.params.id, proposalSchema.parse(req.body.proposal), field));
+  }));
+
   r.get('/:id/map', asyncH(async (req, res) => {
     const app = await applicationService.load(req.params.id);
     res.json(buildSummary(app).map);
   }));
 
+  // The engine room: what the engine did for this application, stage by stage (read from what is already stored: nothing is re-run)
+  r.get('/:id/engine', asyncH(async (req, res) => res.set('Cache-Control', 'private, no-store').json(buildEngineTrace(await applicationService.load(req.params.id)))));
+
   r.get('/:id/assessment', asyncH(async (req, res) => {
     const app = await applicationService.load(req.params.id);
     res.json({ assessment: app.assessment });
+  }));
+
+  // Printable outputs: a block plan at a true printed scale (SVG) and a draft Lawful Development Certificate supporting statement (HTML, print to PDF)
+  r.get('/:id/block-plan.svg', asyncH(async (req, res) => {
+    res.set({ 'Content-Type': 'image/svg+xml; charset=utf-8', 'Content-Disposition': 'inline; filename="block-plan.svg"', 'Cache-Control': 'private, no-store' }).send(await applicationService.blockPlanSvg(req.params.id));
+  }));
+  r.get('/:id/ldc-pack', asyncH(async (req, res) => {
+    res.set({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'private, no-store' }).send(await applicationService.ldcPack(req.params.id));
   }));
 
   // Image proxy: API keys never reach the browser, and only the application's own coordinates are used.
@@ -63,6 +104,10 @@ export function applicationRoutes({ applicationService, mediaService }) {
   r.get('/:id/media/street-view', asyncH(async (req, res) => {
     const app = await applicationService.load(req.params.id);
     sendImage(res, await mediaService.streetViewImage(app, mediaService.size(req.query)));
+  }));
+  r.get('/:id/media/map', asyncH(async (req, res) => {
+    const app = await applicationService.load(req.params.id);
+    sendImage(res, await mediaService.mapImage(app));
   }));
   r.get('/:id/media/aerial', asyncH(async (req, res) => {
     const app = await applicationService.load(req.params.id);

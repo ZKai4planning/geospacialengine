@@ -1,0 +1,30 @@
+{
+  "id": "balcony-on-extension",
+  "title": "Extension with a balcony or raised platform",
+  "kind": "legislation",
+  "basis": "Class A.1(k)",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_extension",
+      "storeys": 1,
+      "depthM": 3,
+      "widthM": 4,
+      "heightM": 3.4,
+      "eavesHeightM": 2.8,
+      "distanceToSideBoundaryM": 3,
+      "additionsAreaM2": 15,
+      "hasProhibited": true
+    }
+  },
+  "expect": {
+    "verdict": "planning_permission",
+    "checks": {
+      "prohibited-features": "fail"
+    }
+  }
+}

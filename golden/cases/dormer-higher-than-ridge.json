@@ -1,0 +1,27 @@
+{
+  "id": "dormer-higher-than-ridge",
+  "title": "Dormer higher than the existing ridge (declared)",
+  "kind": "legislation",
+  "basis": "Class B.1(b)",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_dormer",
+      "widthM": 3.5,
+      "depthM": 2.5,
+      "heightM": 2.3,
+      "volumeM3": 30,
+      "higherThanRoof": true
+    }
+  },
+  "expect": {
+    "verdict": "planning_permission",
+    "checks": {
+      "roof-height": "fail"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "rear-terraced-6m5-planning",
+  "title": "Terraced, 6.5 m needs planning permission",
+  "kind": "legislation",
+  "basis": "Class A.1(g): more than 6 m",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_extension",
+      "storeys": 1,
+      "depthM": 6.5,
+      "widthM": 4,
+      "heightM": 3.4,
+      "eavesHeightM": 2.8,
+      "distanceToSideBoundaryM": 3,
+      "additionsAreaM2": 15
+    }
+  },
+  "expect": {
+    "verdict": "planning_permission",
+    "checks": {
+      "rear-depth": "fail"
+    }
+  }
+}

@@ -10,6 +10,7 @@ import { addressRoutes } from './routes/address.js';
 import { applicationRoutes } from './routes/applications.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { listWorkTypes } from './services/workTypes.js';
+import { buildRulebook } from './services/engineTrace.js';
 
 const publicDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
 
@@ -22,10 +23,11 @@ export function createApp(container = createContainer()) {
     contentSecurityPolicy: { directives: { ...helmet.contentSecurityPolicy.getDefaultDirectives(), 'upgrade-insecure-requests': null } },
   }));
   app.use(cors(config.corsOrigins.length ? { origin: config.corsOrigins } : { origin: false }));
-  app.use(express.json({ limit: '50kb' }));
+  app.use(express.json({ limit: '300kb' }));
 
   const limiter = (limit) => rateLimit({ windowMs: 60_000, limit, standardHeaders: true, legacyHeaders: false });
   app.use('/api', limiter(300));
+  app.get('/api/engine/rules', (req, res) => res.json(buildRulebook()));
   app.use('/api/address', limiter(90)); // type-ahead is the chattiest endpoint
 
   app.get('/health', (req, res) => res.json({

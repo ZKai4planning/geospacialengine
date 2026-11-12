@@ -1,0 +1,29 @@
+{
+  "id": "rear-existing-extension-counts",
+  "title": "An existing 2 m extension counts towards the limit",
+  "kind": "legislation",
+  "basis": "Depth is measured from the ORIGINAL rear wall (A.1(f)); 2 m + 2 m = 4 m on a terrace",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 2,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_extension",
+      "storeys": 1,
+      "depthM": 2,
+      "widthM": 4,
+      "heightM": 3.4,
+      "eavesHeightM": 2.8,
+      "distanceToSideBoundaryM": 3,
+      "additionsAreaM2": 15
+    }
+  },
+  "expect": {
+    "verdict": "prior_approval",
+    "checks": {
+      "rear-depth": "warn"
+    }
+  }
+}

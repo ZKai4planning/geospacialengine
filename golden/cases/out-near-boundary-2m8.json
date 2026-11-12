@@ -1,0 +1,29 @@
+{
+  "id": "out-near-boundary-2m8",
+  "title": "2.8 m high, 1.5 m from the boundary",
+  "kind": "legislation",
+  "basis": "Class E.1(e)(ii): 2.5 m within 2 m of a boundary",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "detached",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "outbuilding",
+      "widthM": 3,
+      "depthM": 3,
+      "roof": "flat",
+      "heightM": 2.8,
+      "eavesHeightM": 2.4,
+      "distanceToBoundaryM": 1.5,
+      "additionsAreaM2": 9
+    }
+  },
+  "expect": {
+    "verdict": "planning_permission",
+    "checks": {
+      "out-boundary": "fail"
+    }
+  }
+}

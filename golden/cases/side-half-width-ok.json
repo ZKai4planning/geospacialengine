@@ -1,0 +1,31 @@
+{
+  "id": "side-half-width-ok",
+  "title": "Side extension: 2.5 m wide on a 6 m house",
+  "kind": "legislation",
+  "basis": "Class A.1(j): at most half the width of the original house",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "detached",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "side_extension",
+      "storeys": 1,
+      "widthM": 2.5,
+      "depthM": 5,
+      "heightM": 3.5,
+      "eavesHeightM": 2.8,
+      "distanceToSideBoundaryM": 1.2,
+      "additionsAreaM2": 12
+    },
+    "houseWidthM": 6
+  },
+  "expect": {
+    "verdict": "permitted_development",
+    "checks": {
+      "side-width": "pass",
+      "side-height": "pass"
+    }
+  }
+}

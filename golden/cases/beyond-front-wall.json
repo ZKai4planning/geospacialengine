@@ -1,0 +1,30 @@
+{
+  "id": "beyond-front-wall",
+  "title": "Rear/side work that reaches past the front wall",
+  "kind": "legislation",
+  "basis": "Class A.1(e)",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_extension",
+      "storeys": 1,
+      "depthM": 3,
+      "widthM": 4,
+      "heightM": 3.4,
+      "eavesHeightM": 2.8,
+      "distanceToSideBoundaryM": 3,
+      "additionsAreaM2": 15,
+      "beyondFront": true
+    }
+  },
+  "expect": {
+    "verdict": "planning_permission",
+    "checks": {
+      "principal-elevation": "fail"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "out-eaves-2m7",
+  "title": "Outbuilding eaves of 2.7 m",
+  "kind": "legislation",
+  "basis": "Class E.1(f): eaves not more than 2.5 m",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "detached",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "outbuilding",
+      "widthM": 3,
+      "depthM": 3,
+      "roof": "flat",
+      "heightM": 2.6,
+      "eavesHeightM": 2.7,
+      "distanceToBoundaryM": 3,
+      "additionsAreaM2": 9
+    }
+  },
+  "expect": {
+    "verdict": "planning_permission",
+    "checks": {
+      "out-eaves": "fail"
+    }
+  }
+}

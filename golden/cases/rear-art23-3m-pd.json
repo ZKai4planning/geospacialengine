@@ -1,0 +1,33 @@
+{
+  "id": "rear-art23-3m-pd",
+  "title": "Conservation area: a 3 m single-storey rear extension is still allowed",
+  "kind": "legislation",
+  "basis": "Class A.1(f); A.2 restricts side and two-storey work, not a single-storey rear",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_extension",
+      "storeys": 1,
+      "depthM": 3,
+      "widthM": 4,
+      "heightM": 3.4,
+      "eavesHeightM": 2.8,
+      "distanceToSideBoundaryM": 3,
+      "additionsAreaM2": 15
+    },
+    "flags": {
+      "article23Land": true
+    }
+  },
+  "expect": {
+    "verdict": "permitted_development",
+    "confidence": "needs_confirmation",
+    "checks": {
+      "rear-depth": "pass"
+    }
+  }
+}

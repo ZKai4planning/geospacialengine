@@ -22,6 +22,12 @@ export function createPostcodesIo() {
         lpaCode: r.codes?.admin_district ?? null,
       };
     },
+    /** Nearest postcode to a point: a second way to find the council when the postcode lookup itself failed. */
+    async reverse({ lat, lng }) {
+      const data = await fetchJson(`${BASE}/postcodes?lon=${encodeURIComponent(lng)}&lat=${encodeURIComponent(lat)}&limit=1`);
+      const r = data?.result?.[0];
+      return r ? { adminDistrict: r.admin_district ?? null, lpaCode: r.codes?.admin_district ?? null, postcode: r.postcode } : null;
+    },
     async autocomplete(partial, limit = 8) {
       const data = await fetchJson(`${BASE}/postcodes/${encodeURIComponent(partial)}/autocomplete?limit=${limit}`);
       return data?.result ?? [];

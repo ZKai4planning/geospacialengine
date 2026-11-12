@@ -1,6 +1,6 @@
 import { cached } from '../utils/cache.js';
 
-const META = {
+export const META = {
   'conservation-area': { label: 'Conservation area', impact: 'Tighter permitted-development limits; planning permission often needed.' },
   'listed-building-outline': { label: 'Listed building', impact: 'Listed building consent required for most works.' },
   'article-4-direction-area': { label: 'Article 4 direction', impact: 'Permitted-development rights may be withdrawn.' },

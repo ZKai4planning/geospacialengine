@@ -1,0 +1,27 @@
+{
+  "id": "dormer-balcony",
+  "title": "Dormer with a balcony",
+  "kind": "legislation",
+  "basis": "Class B.1(f): no verandas, balconies or raised platforms",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_dormer",
+      "widthM": 3,
+      "depthM": 3,
+      "heightM": 2,
+      "volumeM3": 30,
+      "balcony": true
+    }
+  },
+  "expect": {
+    "verdict": "planning_permission",
+    "checks": {
+      "roof-balcony": "fail"
+    }
+  }
+}

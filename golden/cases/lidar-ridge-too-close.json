@@ -1,0 +1,38 @@
+{
+  "id": "lidar-ridge-too-close",
+  "title": "Extension within the LiDAR tolerance of the ridge: warn, not fail",
+  "kind": "legislation",
+  "basis": "The measurement is about +-0.5 m, so it cannot decide a close call",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_extension",
+      "storeys": 2,
+      "depthM": 3,
+      "widthM": 4,
+      "heightM": 7.9,
+      "distanceToRearBoundaryM": 9,
+      "additionsAreaM2": 15
+    },
+    "existingRoof": {
+      "source": "lidar",
+      "confidence": "high",
+      "toleranceM": 0.5,
+      "ridgeM": 8.1,
+      "eavesM": 5.2,
+      "roofShape": "pitched",
+      "groundFallM": 0.2
+    }
+  },
+  "expect": {
+    "verdict": "permitted_development",
+    "confidence": "needs_confirmation",
+    "checks": {
+      "existing-height": "warn"
+    }
+  }
+}

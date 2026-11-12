@@ -1,0 +1,43 @@
+{
+  "id": "decision-ribble-valley-eastfield-drive-eaves",
+  "title": "3 m rear extension, eaves 0.5 m above existing, rendered, in a National Landscape (1 Eastfield Drive, West Bradford)",
+  "kind": "decision",
+  "basis": "Ribble Valley BC ref 3/2025/0408, certificate of lawfulness refused, officer report signed 11 Jul 2025: single-storey rear extension 3 m deep on a semi-detached house in a National Landscape (article 2(3) land); eaves exceed the existing eaves by approximately 0.5 m (A.1(d)); also refused because it is to be rendered (A.2(a)), now tested as a second expectation. Only the 0.5 m difference and the 3 m depth are from the report: absolute roof heights are placeholders.",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "semi-detached",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 300,
+    "proposal": {
+      "type": "rear_extension",
+      "storeys": 1,
+      "depthM": 3,
+      "widthM": 4,
+      "heightM": 3.5,
+      "eavesHeightM": 3,
+      "distanceToSideBoundaryM": 2,
+      "additionsAreaM2": 12,
+      "cladding": "render"
+    },
+    "flags": {
+      "article23Land": true
+    },
+    "existingRoof": {
+      "source": "survey",
+      "confidence": "high",
+      "toleranceM": 0.05,
+      "ridgeM": 6.5,
+      "eavesM": 2.5,
+      "roofShape": "pitched",
+      "groundFallM": 0
+    }
+  },
+  "expect": {
+    "verdict": "planning_permission",
+    "checks": {
+      "existing-eaves": "fail",
+      "cladding": "fail"
+    }
+  }
+}

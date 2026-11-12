@@ -98,3 +98,53 @@ $$;
 -- ---------- 6. OPTIONAL: delete drafts older than 30 days ----------------------------
 -- Run from a daily scheduler (e.g. a Vercel Cron hitting a protected route, or your provider's job runner):
 --   delete from applications where created_at < now() - interval '30 days';
+
+-- ---------- 7. HM Land Registry INSPIRE parcels (cadastral polygons, England & Wales) -----------
+-- Loaded by scripts/import-inspire.js (one council file at a time). Uses Postgres's built-in `box` type and a GiST index,
+-- so it needs NO PostGIS. One row per polygon; a registered extent made of several pieces has `parts` > 1 (same inspire_id).
+-- ring_e7 is the outer ring flattened as [lng_e7, lat_e7, lng_e7, lat_e7, ...] (degrees * 1e7), closed.
+create table if not exists inspire_parcels (
+  id          bigserial,
+  inspire_id  text,
+  council     text      not null,
+  parts       smallint  not null default 1,
+  area_m2     real      not null,
+  bbox        box       not null,        -- ((max_lng,max_lat),(min_lng,min_lat))
+  ring_e7     integer[] not null
+);
+create index if not exists inspire_parcels_bbox_idx    on inspire_parcels using gist (bbox);
+create index if not exists inspire_parcels_council_idx on inspire_parcels (council);
+create index if not exists inspire_parcels_inspire_idx on inspire_parcels (inspire_id, council);
+
+create table if not exists inspire_meta (
+  key   text primary key,
+  value text
+);
+
+-- Parcels whose bounding box touches a small box (p_pad_m metres each way, max 20) around the point. The caller does the exact
+-- point-in-polygon test (src/providers/inspireLocal.js), so this stays a cheap index-only lookup.
+create or replace function inspire_parcels_at(
+  p_lat double precision, p_lng double precision, p_pad_m double precision default 1.5
+)
+returns table (id bigint, inspire_id text, council text, parts smallint, area_m2 real, ring_e7 integer[])
+language sql stable
+as $$
+  select p.id, p.inspire_id, p.council, p.parts, p.area_m2, p.ring_e7
+  from inspire_parcels p
+  where p.bbox && box(
+    point(p_lng - least(greatest(p_pad_m, 0), 20) / (111320.0 * cos(radians(p_lat))), p_lat - least(greatest(p_pad_m, 0), 20) / 111320.0),
+    point(p_lng + least(greatest(p_pad_m, 0), 20) / (111320.0 * cos(radians(p_lat))), p_lat + least(greatest(p_pad_m, 0), 20) / 111320.0))
+  limit 40;
+$$;
+
+-- The other pieces of a multi-part registered extent.
+create or replace function inspire_parts(p_inspire_id text, p_council text)
+returns table (id bigint, inspire_id text, council text, parts smallint, area_m2 real, ring_e7 integer[])
+language sql stable
+as $$
+  select p.id, p.inspire_id, p.council, p.parts, p.area_m2, p.ring_e7
+  from inspire_parcels p
+  where p.inspire_id = p_inspire_id and p.council = p_council
+  limit 40;
+$$;
+

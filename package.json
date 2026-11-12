@@ -12,13 +12,22 @@
     "test": "node --test",
     "diagnose": "node scripts/diagnose.js",
     "import:uprn": "node scripts/import-uprn.js",
-    "db:schema": "node scripts/apply-schema.js"
+    "db:schema": "node scripts/apply-schema.js",
+    "check:title": "node scripts/check-title-boundary.js",
+    "import:inspire": "node scripts/import-inspire.js",
+    "check:inspire": "node scripts/check-inspire.js",
+    "check:lidar": "node scripts/check-lidar.js",
+    "import:coal": "node scripts/import-coal.js",
+    "check:epc": "node scripts/check-epc.js",
+    "golden": "node scripts/golden.js",
+    "preview:interior": "node scripts/preview-interior.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
     "express-rate-limit": "^7.4.0",
+    "geotiff": "^3.0.5",
     "helmet": "^7.1.1",
     "lru-cache": "^11.0.0",
     "pg": "^8.13.0",

@@ -1,0 +1,37 @@
+{
+  "id": "wall-on-boundary",
+  "title": "Side walls on the registered boundary",
+  "kind": "legislation",
+  "basis": "Approved Document B (guidance): boundary walls need fire resistance",
+  "type": "site",
+  "input": {
+    "house": [
+      0,
+      0,
+      5,
+      9
+    ],
+    "proposal": [
+      0,
+      9,
+      5,
+      13
+    ],
+    "plot": [
+      0,
+      -10,
+      5,
+      25
+    ]
+  },
+  "expect": {
+    "walls": {
+      "east": "on_boundary",
+      "west": "on_boundary",
+      "north": "clear"
+    },
+    "items": [
+      "registered boundary line"
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "out-used-as-home",
+  "title": "Outbuilding used as a separate home",
+  "kind": "legislation",
+  "basis": "Class E.1(a): incidental to the enjoyment of the house",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "detached",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "outbuilding",
+      "widthM": 3,
+      "depthM": 3,
+      "roof": "flat",
+      "heightM": 2.6,
+      "eavesHeightM": 2.4,
+      "distanceToBoundaryM": 3,
+      "additionsAreaM2": 9,
+      "usedAsHome": true
+    }
+  },
+  "expect": {
+    "verdict": "planning_permission",
+    "checks": {
+      "incidental": "fail"
+    }
+  }
+}

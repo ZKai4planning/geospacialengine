@@ -1,0 +1,32 @@
+{
+  "id": "wall-within-1m-of-boundary",
+  "title": "0.7 m from the registered boundary",
+  "kind": "legislation",
+  "basis": "Approved Document B (guidance): unprotected areas within 1 m",
+  "type": "site",
+  "input": {
+    "house": [
+      0,
+      0,
+      5,
+      9
+    ],
+    "proposal": [
+      0,
+      9,
+      5,
+      13
+    ],
+    "plot": [
+      -3,
+      -10,
+      5.7,
+      25
+    ]
+  },
+  "expect": {
+    "walls": {
+      "east": "within_1m"
+    }
+  }
+}

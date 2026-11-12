@@ -1,0 +1,36 @@
+{
+  "id": "dormer-below-surveyed-ridge",
+  "title": "Dormer top 7.0 m against a surveyed 7.5 m ridge",
+  "kind": "legislation",
+  "basis": "Class B.1(b)",
+  "type": "assess",
+  "input": {
+    "country": "England",
+    "houseForm": "terraced",
+    "existingExtensionDepthM": 0,
+    "plotAreaM2": 120,
+    "proposal": {
+      "type": "rear_dormer",
+      "widthM": 3.5,
+      "depthM": 2.5,
+      "heightM": 2.3,
+      "volumeM3": 30,
+      "topHeightM": 7.0
+    },
+    "existingRoof": {
+      "source": "survey",
+      "confidence": "high",
+      "toleranceM": 0.05,
+      "ridgeM": 7.5,
+      "eavesM": 5,
+      "roofShape": "pitched",
+      "groundFallM": 0
+    }
+  },
+  "expect": {
+    "verdict": "permitted_development",
+    "checks": {
+      "existing-height": "pass"
+    }
+  }
+}

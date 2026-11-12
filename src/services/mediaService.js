@@ -54,6 +54,17 @@ export function createMediaService({ providers, osmMap = null }) {
       }
     },
 
+    /** Plain street map for the SAME view as the aerial photo (same centre, zoom and size), so the outlines line up on both. */
+    async mapImage(app) {
+      const v = app.map?.view ?? { lat: app.address.lat, lng: app.address.lng, zoom: 20, w: 640, h: 400 };
+      const view = makeView(v);
+      if (osmMap) {
+        try { return await osmMap.render({ view }); }
+        catch (e) { logger.warn({ err: e.message }, 'map view failed to load'); }
+      }
+      return placeholder.renderAerial({ view, note: 'The map view could not be loaded – the outlines are still correct' });
+    },
+
     /** Same view the overlay was projected into, so photo and outlines line up exactly. */
     async aerialImage(app) {
       const v = app.map?.view ?? { lat: app.address.lat, lng: app.address.lng, zoom: 20, w: 640, h: 400 };
