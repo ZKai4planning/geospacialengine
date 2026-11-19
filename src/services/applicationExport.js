@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { proposalSchema } from './workTypes.js';
 import { badRequest } from '../utils/errors.js';
 import { interiorSchema } from './interior/schema.js';
+import { titleSchema } from './titleInfo.js';
 
 export const EXPORT_SCHEMA = 'uk-planning-engine/application';
 export const EXPORT_VERSION = 1;
@@ -39,6 +40,7 @@ const inputsSchema = z.object({
     .refine((a) => a.id || a.manual, 'The file has no address id or manual address.'),
   profile: profileSchema.default({}),
   proposal: proposalSchema.nullable().optional(),
+  title: titleSchema.nullable().optional(),         // title number + tenure the applicant entered
   interior: interiorSchema.nullable().optional(),   // edits to the inside (storeys, room names...); files saved before the 3D view have none
 });
 const docSchema = z.object({ schema: z.literal(EXPORT_SCHEMA), version: z.number().int().min(1).max(EXPORT_VERSION), inputs: inputsSchema });
@@ -80,6 +82,7 @@ export function buildExport(app) {
       address: addressInput(app),
       profile: userProfile(app),
       proposal: app.proposal ?? null,
+      title: app.title?.titleNumber || app.title?.tenure ? { titleNumber: app.title.titleNumber ?? null, tenure: app.title.tenure, leaseYearsRemaining: app.title.leaseYearsRemaining ?? null } : null,
       interior: app.interiorSetup && Object.keys(app.interiorSetup).length ? app.interiorSetup : null,
     },
     results: {

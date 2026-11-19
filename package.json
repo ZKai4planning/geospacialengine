@@ -20,7 +20,12 @@
     "import:coal": "node scripts/import-coal.js",
     "check:epc": "node scripts/check-epc.js",
     "golden": "node scripts/golden.js",
-    "preview:interior": "node scripts/preview-interior.js"
+    "preview:interior": "node scripts/preview-interior.js",
+    "register:report": "node scripts/register-report.js",
+    "import:geo": "node scripts/import-geo.js",
+    "db:schema:geo": "node scripts/apply-schema.js",
+    "verify:open-data": "node scripts/verify-open-data.js",
+    "prepare:open-data": "node scripts/prepare-open-data.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -33,6 +38,9 @@
     "pg": "^8.13.0",
     "pino": "^9.4.0",
     "zod": "^3.23.8"
+  },
+  "optionalDependencies": {
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "pg-copy-streams": "^6.0.6"

@@ -1,5 +1,6 @@
 import { fetchJson as defaultFetchJson } from '../utils/http.js';
 import { entityUrl, isCurrent } from '../utils/planningDataApi.js';
+import { simplifyRing } from '../utils/simplify.js';
 
 export const CONSTRAINT_DATASETS = [
   'conservation-area',
@@ -15,7 +16,15 @@ export const CONSTRAINT_DATASETS = [
   'site-of-special-scientific-interest',
 ];
 
-/** planning.data.gov.uk – national planning constraints that intersect a point. */
+const toEntity = (e) => ({ dataset: e.dataset, entity: e.entity, reference: e.reference ?? null, name: e.name ?? null, url: `https://www.planning.data.gov.uk/entity/${e.entity}` });
+/** [lng, lat] ring -> closed WKT POLYGON, thinned so the request URL stays short. */
+export function ringToWkt(ring) {
+  const r = simplifyRing(ring, { tolM: 1, maxPts: 60 });
+  const pts = r[0][0] === r.at(-1)[0] && r[0][1] === r.at(-1)[1] ? r : [...r, r[0]];
+  return `POLYGON((${pts.map(([lng, lat]) => `${Number(lng.toFixed(7))} ${Number(lat.toFixed(7))}`).join(',')}))`;
+}
+
+/** planning.data.gov.uk – national planning constraints that intersect a point, or any part of a plot outline. */
 export function createPlanningData({ fetchJson = defaultFetchJson } = {}) {
   return {
     name: 'planning.data.gov.uk',
@@ -27,15 +36,17 @@ export function createPlanningData({ fetchJson = defaultFetchJson } = {}) {
         ...datasets.map((d) => ['dataset', d]),
         ['exclude_field', 'geometry'], ['exclude_field', 'point'],
       ]), { timeoutMs: 10000 });
-      return (data?.entities ?? [])
-        .filter((e) => isCurrent(e))
-        .map((e) => ({
-          dataset: e.dataset,
-          entity: e.entity,
-          reference: e.reference ?? null,
-          name: e.name ?? null,
-          url: `https://www.planning.data.gov.uk/entity/${e.entity}`,
-        }));
+      return (data?.entities ?? []).filter((e) => isCurrent(e)).map(toEntity);
+    },
+    /** Same constraints, but for ANY part of the plot (`ring` = [[lng, lat], ...], e.g. the registered title polygon), not just the address point. */
+    async entitiesWithin({ ring, datasets = CONSTRAINT_DATASETS }) {
+      if (!ring || ring.length < 4) return [];
+      const data = await fetchJson(entityUrl([
+        ['geometry', ringToWkt(ring)], ['geometry_relation', 'intersects'], ['limit', 100],
+        ...datasets.map((d) => ['dataset', d]),
+        ['exclude_field', 'geometry'], ['exclude_field', 'point'],
+      ]), { timeoutMs: 12000 });
+      return (data?.entities ?? []).filter((e) => isCurrent(e)).map(toEntity);
     },
   };
 }

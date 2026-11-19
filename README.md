@@ -482,3 +482,120 @@ The form has new "More details" yes/no questions, and the engine fails the route
 - **A.2(a) cladding:** the `cladding` field (render, stone, artificial stone, pebble dash, tiles, timber, plastic). On article 2(3) land any of those on an extension is a fail. Elsewhere it is ignored.
 - **Yes / No / Not checked:** the new questions are now three-way selects that default to "Not checked". "Yes" fails the route, "No" passes the check, and "Not checked" adds one `details-unconfirmed` warning naming what is open, so the result reads "needs confirmation". API callers that omit a field are not nagged; only an explicit `"unknown"` is.
 - **Filled from data:** a mapped public right of way (OpenStreetMap `designation` / `prow_ref`) was already detected from the street data. A Part 3 origin is now read from the planning history: an approved change of use from an office, shop, barn or storage building into a home sets `flags.part3Conversion`. Both answers then stop being asked. What is still not available: the council's definitive map of rights of way, so an unmapped path is never assumed absent.
+
+## 228-parameter Property Intelligence register
+
+`src/data/intelligenceRegister.js` holds the AI4Planning v3 register (228 checks, 17 domains: id, evidence required, acceptance criterion).
+`src/data/intelligenceCoverage.js` is the **baseline audit** of what the engine did before the register module existed (66 have, 67 partial, 95 not built) and the route that was suggested to close each gap.
+`src/register/` is the module that closes them: **every one of the 228 checks now has a live reading**. `src/services/intelligenceRegister.js` joins the catalogue, the baseline and the module (the checks `src/register/checks.js` implements override their baseline row, so the coverage table cannot claim more or less than the code does) and reads what the engine found for one application.
+
+"Built" means the engine produces a reading. It does **not** mean every check answers on a fresh install: a check whose data you have not loaded says *awaiting data*, never *pass*. See "Feeding the checks" below.
+
+| Endpoint | Gives |
+|---|---|
+| `GET /api/intelligence` | the 228 checks + coverage counts (`?format=csv` the matrix, `?format=html` the report) |
+| `GET /api/applications/:id/intelligence` | the same 228 rows with what the engine found for that application, evidence count and reviewer status per check (`?format=csv` / `?format=html`) |
+| `GET /api/applications/:id/readiness` | the release gate (PI-17-14): held / ready, with every blocker |
+| `GET / POST /api/applications/:id/evidence/:checkId` | list / add evidence (declaration, document, survey, official record, exception) |
+| `POST /api/applications/:id/evidence/:checkId/:evidenceId/withdraw` | withdraw evidence with a named person and a reason (never deleted) |
+| `POST /api/applications/:id/sign-off/:checkId` | **reviewer token required.** A named reviewer signs the engine's *current* reading (accepted / rejected / query) |
+| `GET / POST /api/applications/:id/surveys`, `PATCH .../surveys/:surveyId` | survey requests: draft > requested > booked > returned; returned results become evidence (PI-17-10) |
+| `POST /api/applications/:id/officer-reviews`, `POST .../:reviewId/outcome` | send the pack to the officer queue with the LPA reference; the outcome needs the reviewer token (PI-17-12) |
+| `GET /api/review-queue` | **reviewer token required.** Every application waiting for an officer outcome |
+| `npm run verify:open-data` | checks the live EA and OSM services once and prints what came back |
+| `npm run register:report` | writes `reports/intelligence-coverage.{json,csv,html}` and `reports/dataset-loading-guide.md` |
+
+Live results are `pass | issue | info | awaiting | not_built`. They are **engine-derived** until a named reviewer signs them. A sign-off records who, in what role, when, and a fingerprint of the reading and the evidence it covered; it turns **stale** if either changes afterwards. Evidence is never deleted, only withdrawn with a reason. A `pass` is limited to its own test, and "no record" is never reported as "none exists".
+
+### How each of the 95 checks is fed
+
+| Feed | Checks | What happens when the input is missing |
+|---|---|---|
+| **Logic** from what the engine already holds (heritage statement, sequential test, BNG, ecology / asbestos triggers, conservation-area trees, overhead-line clearance, privacy separation, visibility splays, history completeness, licensing, EIA context) | 12 | Says what is missing (e.g. no building outline, no energy certificate) - *awaiting* |
+| **Datasets on your own server** (`geo_features`, plain Postgres): EA flood maps, noise, AQMA, COMAH, BGS geology, utility records, council registers ... | 47 datasets, 51 checks read them directly (a few more use them to refine a logic or evidence check) | *awaiting data*: "X is not loaded - load it with ..." |
+| **Council standards** (parking, cycle parking, density, SuDS, privacy) in `lpa_standards` | 4 | *awaiting data* for that council |
+| **Live OpenStreetMap** (substations, traffic signals; one Overpass call per application) | 2 | *awaiting*; a failed lookup is retried after 5 minutes |
+| **Evidence** from people and documents (deeds, covenants, easements, structural / bat / bird / condition surveys ...) | 22 | *awaiting* until evidence is on file; engine summarises it and flags what it says, only a named reviewer can verify it |
+| **Workflow** (survey requests, sign-off, officer queue, release gate) | 4 (12 + 51 + 4 + 2 + 22 + 4 = 95) | Reads its own records |
+
+### Free live open data (no loading needed)
+
+Before you load anything onto your own server, two providers answer part of the register straight from open sources:
+
+- `providers/floodSources.js` reads three Environment Agency datasets (Open Government Licence, no key) for the address: **Risk of Flooding from Surface Water** (WMS `nafra2-risk-of-flooding-from-surface-water`, layer `rofsw_4band`, attribute `risk_band`), **Recorded Flood Outlines** and **Reservoir Flood Extents - Wet Day** (OGC API Features).
+- `providers/osmInfra.js` adds watercourses, substations and traffic signals from OpenStreetMap in one Overpass request.
+
+Results are stored on the application as `flood` and `infra`. They feed PI-08-02, 08-03, 08-05, 08-07, 08-08, 08-12, 10-03 and 11-03 **only when the matching dataset on your own server is not loaded**: a loaded dataset (`ea-rofsw`, `ea-historic-flood`, `ea-reservoir-flood`, `ea-main-river`, `ordinary-watercourse`) always wins, and every open-data reading says it came from live open data. The dedicated Overpass lookup (`extras`) still wins for substations and signals; `infra` fills in when it is absent. Both providers are on by default: set `FLOOD_DATA_ENABLED=false` / `OSM_INFRA_ENABLED=false` to switch them off.
+
+The Environment Agency describes surface water risk as a screening map not for property-level decisions, and a recorded flood outline does not prove a property flooded: the engine words them that way. OSM rivers and streams are not the EA main-river designation or the council register of ordinary watercourses.
+
+**Run `npm run verify:open-data` once where the network is open.** The reply format of the live WMS and the property names in the OGC data could not be checked from the machine this was built on, so treat those readings as unconfirmed until you have seen the output.
+
+### Air quality, flood defences, main river and road noise (live, no loading)
+
+`providers/openLayers.js` reads four more open sources, again only when the matching dataset on your own server is not loaded (a loaded dataset always wins):
+
+| Check | Source | Format |
+|---|---|---|
+| PI-13-01 Air quality management area | planning.data.gov.uk dataset `air-quality-management-area` (Defra, OGL; the same point query the engine uses for conservation areas) | entity API |
+| PI-08-06 Flood defences | EA Spatial Flood Defences (including standardised attributes) | OGC API - Features |
+| PI-08-07 Main river | EA Statutory Main River Map: the real designation, so PI-08-07 now uses it before the OpenStreetMap rivers | OGC API - Features |
+| PI-13-02 Road noise | Defra strategic noise mapping, round 4 (2022), Lden, road | raster (WCS), sampled as one 10 m cell |
+
+Settings: `OPEN_LAYERS_ENABLED` (default true), and optional `FLOOD_DEFENCES_URL`, `MAIN_RIVER_URL`, `NOISE_ROAD_WCS_URL`, `NOISE_RAIL_WCS_URL`, `NOISE_WCS_AXES`. **Run `npm run verify:open-data` once where the network is open** (sections 6 to 8). Confirmed from the publishers' own pages: dataset names, service addresses and licences. Not confirmed from the build machine: the property names inside the flood-defence and main-river features, the WCS coverage id and axis labels for noise, and what the noise raster holds for a quiet place. The readers answer *awaiting* rather than guess, and a noise value that is not a plausible 20-120 dB figure is "no reading", never "quiet". Rail noise is off until its service address is confirmed.
+
+### Datasets that are published as files (appeals, heat networks, broadband)
+
+These three are not live services, so they are loaded onto your server after a conversion step. `npm run prepare:open-data` turns the official download into a file `npm run import:geo` accepts (exact commands are in the header of `scripts/prepare-open-data.js` and in `reports/dataset-loading-guide.md`):
+
+- **Appeals** (PI-04-08): the Planning Inspectorate Casework Database (gov.uk, Excel, 5-year rolling, updated about monthly, OGL). The sheet has no coordinates, so each appeal is placed at its **postcode centre** (via postcodes.io); the reading says so. Rows without a postcode are counted and dropped.
+- **Heat networks** (PI-10-15): the DESNZ Heat Networks Planning Database (CSV or Excel, quarterly, OGL). It lists **projects**, not zones, and uses its own National Grid X/Y columns. Heat network zoning polygons can still be loaded into the same dataset.
+- **Broadband** (PI-10-14): Ofcom Connected Nations fixed coverage by postcode (121 CSV files, OGL). Coverage columns are kept with their published names and shown verbatim.
+
+Excel files need the optional `xlsx` package; otherwise save the sheet as CSV.
+
+### Still not closed, and why
+
+- **Environmental permits** (PI-13-11): the EA industrial-installations download is under the **Environment Agency Conditional Licence**, not the Open Government Licence (the catalogue previously said OGL; corrected). It is a GIS/Access archive that needs converting first, so it stays a loader-only dataset under your own reading of that licence.
+- **COMAH** (PI-13-05): HSE offers a public search, but I could not confirm a national open dataset or its licence. Loader-only.
+- **Rail noise, climate allowance catchments, night lights, heat stress, infrastructure projects**: no confirmed service address or licence. Loader-only.
+
+### Register screen
+
+`/register.html` (linked from the home page, and from "Take it with you" once an application is assessed, as `/register.html?app=<id>`). Without `?app=` it shows the catalogue: the 228 checks, what the engine covers, what is switched off and the suggested route to close each gap. With `?app=<id>` it adds the readiness banner (held / ready, with every blocker), live readings, a review queue (issues and awaiting checks, critical first), the survey requests on file, the evidence on file for each check with a form to add more, and a reviewer sign-off form. Sign-off needs `REVIEWER_TOKEN`; the token is typed each time and never stored in the browser. The page builds everything as text nodes, never as HTML.
+
+### Feeding the checks (your server / VPS)
+
+```bash
+npm run db:schema:geo                     # once: creates geo_features, geo_meta, lpa_standards (plain Postgres, no PostGIS)
+npm run import:geo -- --list              # every dataset: key, checks it feeds, publisher, licence
+npm run import:geo -- --dataset ea-rofsw --file rofsw.geojsonl --rating-field risk_band --source "EA RoFSW, 2026-09" --dry-run
+npm run import:geo -- --dataset ea-rofsw --file rofsw.geojsonl --rating-field risk_band --source "EA RoFSW, 2026-09"
+npm run import:geo -- --dataset aqma --file aqma.geojson --authority E09000031 --source "Waltham Forest AQMA 2025"
+npm run import:geo -- --standards standards.json --authority E09000031     # council parking / cycle / density / SuDS / privacy numbers
+```
+
+`reports/dataset-loading-guide.md` (generated by `npm run register:report`) lists every dataset with its publisher, licence, what to ask for and the exact command, grouped by how easy it is to get. **Check each dataset's licence before loading it**: the paid, conditional and council datasets are loaded only under your own agreement. The engine never downloads anything itself.
+
+### Settings
+
+| Variable | Default | Effect |
+|---|---|---|
+| `FLOOD_DATA_ENABLED` | `true` | Read EA surface water, recorded flood and reservoir extents live (no key) |
+| `OSM_INFRA_ENABLED` | `true` | Read watercourses, substations and traffic signals from OpenStreetMap in one request |
+| `GEO_LAYERS_ENABLED` | `true` | Read the loaded datasets and council standards (needs `DATABASE_URL`) |
+| `OSM_EXTRAS_ENABLED` | `true` | Look up substations and traffic signals from Overpass |
+| `REVIEWER_TOKEN` | unset | Enables sign-off, officer outcomes and the review queue (`Authorization: Bearer <token>`). Unset = those endpoints are closed (403) |
+| `READINESS_ENFORCE` | `false` | When `true`, `GET /api/applications/:id/ldc-pack` returns **409 with the blockers** until the readiness gate (PI-17-14) is released |
+
+### The readiness gate (PI-17-14)
+
+An application is **held** until (1) the property is confirmed (a UPRN that was not a low-confidence guess and not a manual address, or a reviewer accepts PI-01-01), (2) every mandatory check (PI-01-01, 05-01, 05-02, 05-03, 05-18, 17-06, 17-07) has a reading or a recorded exception, (3) every check the engine flags as an **issue** is accepted by a named reviewer (and still current) or recorded as an exception with a reason, and (4) the preliminary route (PI-05-18) is signed. The gate decides whether the pack may leave the building; it never makes the planning decision.
+
+### Rules the engine applies, and their limits
+
+Heritage, flood, BNG, ecology, asbestos and licensing rules are written out in `src/register/checks.js` with the date they were understood (`AS_OF`). Planning rules change (for example the Biodiversity Net Gain changes for applications from 6 August 2026): **confirm them against current gov.uk guidance before relying on a result**. Overhead-line buffers (6 m / 15 m) and visibility splays (Manual for Streets: 2.4 m x 25 m at 20 mph, 43 m at 30 mph; speed assumed 30 mph on local roads unless surveyed) are screening figures, not DNO, HSE or highway-authority standards. OSM data is incomplete; "none mapped" is never "none exist".
+
+### Not yet verified against real infrastructure
+
+`db/schema-geo.sql`, the GiST `box` candidate query in `register/geo.js` and `scripts/import-geo.js` have been tested only against the in-memory backend and fake database, not a real Postgres: run `npm run db:schema:geo`, then load one small dataset with `--dry-run` first and confirm a lookup via `/api/applications/:id/intelligence`. The HTTP routes were syntax-checked and the logic behind them is unit-tested (`test/register.test.js`), but they were not exercised end to end in the environment this was built in (no express installed).

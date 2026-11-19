@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>228-check property intelligence register</title>
+  <link rel="stylesheet" href="/register.css">
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1>Property intelligence register</h1>
+    <p id="sub" class="muted">Loading…</p>
+  </div>
+  <nav class="links" aria-label="Exports">
+    <a id="lnk-home" href="/">Search an address</a>
+    <a id="lnk-csv" href="#">CSV</a>
+    <a id="lnk-html" href="#" target="_blank" rel="noopener">Report page</a>
+    <button type="button" id="btn-print" class="ghost">Print</button>
+  </nav>
+</header>
+<main>
+  <section id="banner" hidden></section>
+  <section id="cards" class="cards" aria-label="Totals"></section>
+  <section class="layout">
+    <aside id="domains" aria-label="Domains"></aside>
+    <section>
+      <form id="filters" class="filters" aria-label="Filters" autocomplete="off">
+        <input id="f-q" type="search" placeholder="Search id, name or text" aria-label="Search">
+        <select id="f-status" aria-label="Engine status"><option value="">Any engine status</option><option value="have">Have</option><option value="partial">Partial</option><option value="missing">Not built</option></select>
+        <select id="f-result" aria-label="Live result" hidden><option value="">Any live result</option><option value="pass">Pass</option><option value="issue">Issue</option><option value="info">Info</option><option value="awaiting">Awaiting data</option><option value="not_built">Not built</option></select>
+        <select id="f-route" aria-label="Route to close"><option value="">Any route to close</option></select>
+        <label class="chk"><input id="f-off" type="checkbox"> Switched off only</label>
+        <button type="button" id="f-reset" class="ghost">Reset</button>
+      </form>
+      <div class="tabs" role="tablist" id="tabs"></div>
+      <div id="content"></div>
+    </section>
+  </section>
+</main>
+<aside id="drawer" hidden aria-label="Check detail"></aside>
+<script src="/register.js" type="module"></script>
+</body>
+</html>

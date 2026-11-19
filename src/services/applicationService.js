@@ -18,6 +18,7 @@ import { ppdSignals } from './ppdSignals.js';
 import { estimateUplift } from './valueEstimate.js';
 import { summariseHistory } from './planningHistory.js';
 import { buildBlockPlanSvg, buildLdcPackHtml } from './planExport.js';
+import { applyTitleInput } from './titleInfo.js';
 import { buildExport, parseImport } from './applicationExport.js';
 import { useGate as computeUseGate } from './useGate.js';
 import { buildMap } from './mapService.js';
@@ -84,6 +85,14 @@ export function createApplicationService({ store, addressService, constraintsSer
         const landfill = (await propertyService.findLandfill(app.address)) ?? null;
         app = (await store.update(id, { landfill, ...derive({ ...app, landfill }) })) ?? { ...app, landfill };
       } catch (e) { logger.warn({ err: e.message }, 'historic landfill lookup failed'); }
+    }
+    if ((app.flood === undefined || app.infra === undefined || app.layers === undefined) && app.address) { // drafts saved before the open flood data / infrastructure / air-quality-noise layers were collected (null = provider off, stored so it is not retried)
+      try {
+        const flood = app.flood === undefined ? ((await propertyService.findFlood(app.address)) ?? null) : app.flood;
+        const infra = app.infra === undefined ? ((await propertyService.findInfra(app.address)) ?? null) : app.infra;
+        const layers = app.layers === undefined ? ((await propertyService.findLayers(app.address)) ?? null) : app.layers;
+        app = (await store.update(id, { flood, infra, layers })) ?? { ...app, flood, infra, layers };
+      } catch (e) { logger.warn({ err: e.message }, 'open flood data lookup failed'); }
     }
     if (app.history === undefined && app.address) { // drafts saved before planning history existed (null = provider off, stored so it is not retried)
       try {
@@ -262,10 +271,18 @@ export function createApplicationService({ store, addressService, constraintsSer
         title = await safe('Plot boundary', () => propertyService.findTitleAt({ lat: c.lat, lng: c.lng }), null, warnings);
       }
 
-      const [lidar, coal, landfill] = await Promise.all([
+      // Now the registered plot is known, ask the constraint datasets about the WHOLE plot, not just the address point (a conservation area or flood zone
+      // that covers only the back garden still matters). If that search fails the point answer from above stays.
+      let constraintsFinal = constraints;
+      if (constraints && title?.ring) constraintsFinal = await safe('Planning constraints across the plot', () => constraintsService.check({ ...address, ring: title.ring }), constraints, warnings);
+
+      const [lidar, coal, landfill, flood, infra, layers] = await Promise.all([
         safe('Building heights', () => propertyService.findHeights(address, site.footprint?.ring ?? null), null, warnings),
         safe('Coal mining risk', () => propertyService.findCoal(address), null, warnings),
         safe('Historic landfill', () => propertyService.findLandfill(address), null, warnings),
+        safe('Open flood data', () => propertyService.findFlood(address), null, warnings),
+        safe('Nearby watercourses and substations', () => propertyService.findInfra(address), null, warnings),
+        safe('Air quality, flood defences, main river and noise', () => propertyService.findLayers(address), null, warnings),
       ]);
 
       // Property type: fall back to OSM's building tag when the address source didn't classify it
@@ -285,7 +302,7 @@ export function createApplicationService({ store, addressService, constraintsSer
         postcode: address.postcode,
         country: postcodeInfo?.country ?? 'England',
         authority: await findAuthority(address, postcodeInfo),
-        footprint: site.footprint, roads: site.roads, roadDetails: site.roadDetails ?? [], trees: site.trees ?? [], pathways: site.pathways ?? [], obstacles: site.obstacles ?? [], epc: epc ?? null, ppd: ppd ?? null, history: history ?? null, outlines: outlines ?? [], lidar: lidar ?? null, coal: coal ?? null, landfill: landfill ?? null, powerLines: site.powerLines ?? [], neighbours: site.neighbours ?? [], barriers: site.barriers ?? [], plot: null, titlePlot: title, protectedTrees: tpo ?? { zones: [], trees: [] }, constraints, media,
+        footprint: site.footprint, roads: site.roads, roadDetails: site.roadDetails ?? [], trees: site.trees ?? [], pathways: site.pathways ?? [], obstacles: site.obstacles ?? [], epc: epc ?? null, ppd: ppd ?? null, history: history ?? null, outlines: outlines ?? [], lidar: lidar ?? null, coal: coal ?? null, landfill: landfill ?? null, flood: flood ?? null, infra: infra ?? null, layers: layers ?? null, powerLines: site.powerLines ?? [], neighbours: site.neighbours ?? [], barriers: site.barriers ?? [], plot: null, titlePlot: title, protectedTrees: tpo ?? { zones: [], trees: [] }, constraints: constraintsFinal, media,
         profile: propertyService.buildProfile({ footprint: site.footprint, plot }),
         proposal: null, warnings,
       };
@@ -324,6 +341,10 @@ export function createApplicationService({ store, addressService, constraintsSer
         try { app = await this.setProposal(app.id, inputs.proposal); }
         catch (e) { warnings.push(`The saved proposal was not applied: ${e.message}`); }
       }
+      if (inputs.title) {
+        try { app = await this.setTitle(app.id, inputs.title); }
+        catch (e) { warnings.push(`The saved title number was not applied: ${e.message}`); }
+      }
       if (inputs.interior) {
         try { app = await this.updateInterior(app.id, inputs.interior); }
         catch (e) { warnings.push(`The saved changes to the inside were not applied: ${e.message}`); }
@@ -347,6 +368,25 @@ export function createApplicationService({ store, addressService, constraintsSer
         } };
       }
       if (input.frontBearingDeg !== undefined) patch.plot = resolvePlot({ ...app, profile }, profile.frontBearingDeg.value).plot;
+      return save(id, app, patch);
+    },
+
+    /** Title number + tenure, recorded against the property's UPRN (see services/titleInfo.js). */
+    async setTitle(id, input) {
+      const app = await load(id);
+      let title;
+      try { title = applyTitleInput(app, input); } catch (e) { throw badRequest(e.message); }
+      const patch = { title };
+      // The title number is bound to the registered polygon this address resolved to, and every constraint is then searched across that whole polygon.
+      // (Open data cannot turn a title number into a polygon on its own: the number is the applicant's, the polygon comes from the address.)
+      const poly = app.titlePlot && !app.titlePlot.estimated ? app.titlePlot : null;
+      if (title.titleNumber && poly) {
+        title.polygonRef = poly.reference ?? null; title.polygonSource = poly.source ?? null; title.polygonAreaM2 = poly.areaM2 ?? null;
+        if (poly.ring && app.constraints?.scope !== 'plot') {
+          try { patch.constraints = await constraintsService.check({ ...app.address, ring: poly.ring }); }
+          catch (e) { logger.warn({ err: e.message }, 'plot-wide constraint search failed'); }
+        }
+      } else if (title.titleNumber) { title.polygonRef = null; title.note = 'No registered polygon matched this address, so the constraints were searched at the address point only.'; }
       return save(id, app, patch);
     },
 

@@ -17,13 +17,29 @@ const PROTECTED = ['conservation-area', 'national-park', 'area-of-outstanding-na
 
 export function createConstraintsService({ providers }) {
   return {
-    async check({ lat, lng }) {
+    /**
+     * `ring` (optional) = the plot outline, [[lng, lat], ...]. With it the search covers the WHOLE plot, not only the address point: a constraint that
+     * touches the garden or a corner of the title still counts. Each item says `where`: 'address' (at the address point) or 'plot' (elsewhere on the plot).
+     * If the plot search fails, the point answer stands on its own and `scope` stays 'point'.
+     */
+    async check({ lat, lng, ring = null }) {
       const key = `pd:${lat.toFixed(5)},${lng.toFixed(5)}`;
       const entities = await cached(key, () => providers.planningData.entitiesAt({ lat, lng }), 6 * 3600);
-      const items = (entities ?? []).map((e) => ({ ...e, label: META[e.dataset]?.label ?? e.dataset, impact: META[e.dataset]?.impact ?? null }));
+      let scope = 'point', plotOnly = [];
+      if (ring && providers.planningData.entitiesWithin) {
+        try {
+          const rk = `pdp:${ring.length}:${ring.slice(0, 3).flat().map((v) => v.toFixed(6)).join(',')}`;
+          const within = await cached(rk, () => providers.planningData.entitiesWithin({ ring }), 6 * 3600);
+          const have = new Set((entities ?? []).map((e) => e.entity));
+          plotOnly = (within ?? []).filter((e) => !have.has(e.entity));
+          scope = 'plot';
+        } catch { /* keep the point answer */ }
+      }
+      const items = [...(entities ?? []).map((e) => ({ ...e, where: 'address' })), ...plotOnly.map((e) => ({ ...e, where: 'plot' }))]
+        .map((e) => ({ ...e, label: META[e.dataset]?.label ?? e.dataset, impact: META[e.dataset]?.impact ?? null }));
       const has = (d) => items.some((i) => i.dataset === d);
       return {
-        source: 'planning.data.gov.uk',
+        source: 'planning.data.gov.uk', scope,
         checkedAt: new Date().toISOString(),
         items,
         flags: {

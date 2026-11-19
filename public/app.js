@@ -334,7 +334,7 @@ function cardsFor(app) {
   return el('div', { class: 'cards' },
     el('article', { class: 'card' },
       el('div', { class: 'img' }, el('img', { src: property.imageUrl, alt: `Street view of ${property.title}` }), property.attribution ? el('span', { class: 'attr' }, property.attribution) : null),
-      el('div', { class: 'body' }, el('h2', {}, property.title), el('p', { class: 'sub' }, property.subtitle), rows(property.rows), useGateView(app))),
+      el('div', { class: 'body' }, el('h2', {}, property.title), el('p', { class: 'sub' }, property.subtitle), rows(property.rows), useGateView(app), titleView(app))),
     el('article', { class: 'card' }, el('div', { class: 'body' }, el('h2', {}, proposal.title), rows(proposal.rows), ['no-front-space', 'public-land', 'outside-plot'].includes(app.assessment?.blocker?.id) ? blockerView(app.assessment) : null)),
     el('article', { class: 'card' },
       siteMapBox(app),
@@ -478,6 +478,25 @@ function openMapModal(app) {
 }
 
 let current = null;
+/** Title number + tenure. The title number is not in open data, so the applicant enters it from the title register; it is stored against this property's UPRN. */
+function titleView(app) {
+  const t = app.title;
+  if (!t) return null;
+  const num = el('input', { type: 'text', placeholder: 'e.g. TGL123456', maxlength: '16', 'aria-label': 'Title number' });
+  num.value = t.titleNumber ?? '';
+  const ten = el('select', { 'aria-label': 'Tenure' }, ['unknown', 'freehold', 'leasehold'].map((v) => el('option', { value: v }, { unknown: 'Tenure: not sure', freehold: 'Freehold', leasehold: 'Leasehold' }[v])));
+  ten.value = t.tenureEntered ? t.tenure : 'unknown';
+  const yrs = el('input', { type: 'number', min: '0', max: '999', placeholder: 'Years left on lease', 'aria-label': 'Years left on the lease' });
+  yrs.value = t.leaseYearsRemaining ?? '';
+  const save = async () => {
+    try { paint(await api(`/applications/${current.id}/title`, { method: 'PATCH', body: JSON.stringify({ titleNumber: num.value, tenure: ten.value, leaseYearsRemaining: yrs.value === '' ? null : Number(yrs.value) }) })); }
+    catch (e) { setStatus(e.message); }
+  };
+  return el('div', { class: 'title-box' },
+    el('p', { class: 'note' }, t.uprn ? `Recorded against UPRN ${t.uprn}. ${t.note}` : `No UPRN yet, so the title number cannot be mapped. ${t.note}`),
+    el('div', { class: 'actions' }, num, ' ', ten, ' ', yrs, ' ', el('button', { type: 'button', class: 'ghost', onclick: save }, 'Save title details')));
+}
+
 /** Not a house (or not confirmed): say so plainly, and let the applicant correct a wrong guess. */
 function useGateView(app) {
   const g = app.useGate;
@@ -605,9 +624,11 @@ function exportsView(app) {
   const base = `/api/applications/${app.id}`;
   return el('div', { class: 'areas exports' }, el('h4', {}, 'Take it with you'),
     el('p', { class: 'actions' },
+      el('a', { class: 'button', href: `${base}/report`, target: '_blank', rel: 'noopener' }, 'Property report (print or save as PDF)'), ' ',
       el('a', { class: 'button', href: `${base}/block-plan.svg`, target: '_blank', rel: 'noopener' }, 'Block plan (A4, printed to scale)'), ' ',
       el('a', { class: 'button', href: `${base}/ldc-pack`, target: '_blank', rel: 'noopener' }, 'Lawful Development Certificate statement (draft)'), ' ',
-      el('a', { class: 'button', href: `${base}/export.json`, download: `${app.reference}.json` }, 'Save everything as JSON')),
+      el('a', { class: 'button', href: `${base}/export.json`, download: `${app.reference}.json` }, 'Save everything as JSON'), ' ',
+      el('a', { class: 'button', href: `/register.html?app=${encodeURIComponent(app.id)}`, target: '_blank', rel: 'noopener' }, '228-check register')),
     el('p', { class: 'note' }, 'Drafts prepared from open data, for you to check and correct. The block plan is not a surveyed or Ordnance Survey-licensed plan, and no location plan is produced – councils set their own validation rules, so check theirs.'));
 }
 
@@ -802,7 +823,7 @@ function paint(app) {
   $('#verdict-area').replaceChildren(...[areasView(app.areas), interiorView(app), sourcesView(app), dashboardView(app.map?.dashboard), epcView(app.epc), salesView(app.ppd), historyView(app.history, app.assessment?.precedent), verdictFor(app.assessment), engineView(app, { onRulebook: () => api('/engine/rules'), workTypes, onWhatIf: (p) => api(`/applications/${app.id}/what-if`, { method: 'POST', body: JSON.stringify({ proposal: p }) }), onLimits: (p, field) => api(`/applications/${app.id}/what-if/limits`, { method: 'POST', body: JSON.stringify({ proposal: p, field }) }), onApply: async (p) => paint(await api(`/applications/${app.id}/proposal`, { method: 'PUT', body: JSON.stringify(p) })) }), exportsView(app)].filter(Boolean));
   const chips = app.constraints?.items ?? [];
   $('#chips-area').replaceChildren(
-    ...(chips.length ? [el('ul', { class: 'chips', 'aria-label': 'Planning constraints' }, chips.map((c) => el('li', { title: c.impact || '' }, c.label)))] : []),
+    ...(chips.length ? [el('ul', { class: 'chips', 'aria-label': 'Planning constraints' }, chips.map((c) => el('li', { title: [c.where === 'plot' ? 'Elsewhere on your plot (not at the address point).' : '', c.impact || ''].filter(Boolean).join(' ') }, c.where === 'plot' ? `${c.label} (on part of the plot)` : c.label)))] : []),
     ...(app.warnings.length ? [el('p', { class: 'note' }, app.warnings.join(' '))] : []));
 }
 

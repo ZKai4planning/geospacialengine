@@ -7,6 +7,8 @@ export function createMemoryStore() {
   return {
     async create(app) { apps.set(app.id, app); return app; },
     async get(id) { return apps.get(id) ?? null; },
+    /** Applications that have an officer review waiting for an outcome (the council's queue). */
+    async listPendingReviews() { return [...apps.values()].filter((a) => (a.officerReviews ?? []).some((r) => r.status === 'pending')); },
     async update(id, patch) {
       const cur = apps.get(id);
       if (!cur) return null;

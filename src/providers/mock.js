@@ -21,6 +21,34 @@ const DB = [18, 20, 22, 24, 26, 28].map(mk);
 /** Offline sample data so the whole flow runs without any network access or keys. */
 export function createMockProviders() {
   return {
+    // sample open flood data and nearby infrastructure (offline demo only; not real readings)
+    flood: {
+      name: 'mock-flood',
+      async check() {
+        return {
+          surfaceWater: { status: 'ok', band: 'low', mapped: true, text: 'Low (0.1% to 1% a year)', source: 'SAMPLE DATA (mock mode)' },
+          recorded: { status: 'outside', events: [], nearM: 250, source: 'SAMPLE DATA (mock mode)' },
+          reservoir: { status: 'outside', events: [], nearM: 250, source: 'SAMPLE DATA (mock mode)' },
+          checkedAt: new Date().toISOString(),
+        };
+      },
+    },
+    layers: {
+      name: 'mock-layers',
+      async check() {
+        return {
+          aqma: { status: 'outside', areas: [], source: 'SAMPLE DATA (mock mode)' },
+          defences: { status: 'outside', assets: [], count: 0, nearM: 250, source: 'SAMPLE DATA (mock mode)' },
+          mainRiver: { status: 'outside', rivers: [], nearM: 50, source: 'SAMPLE DATA (mock mode)' },
+          noise: { status: 'ok', lden: 52.5, source: 'road', sources: [{ source: 'road', lden: 52.5 }], cellM: 10, text: 'SAMPLE DATA (mock mode)' },
+          checkedAt: new Date().toISOString(),
+        };
+      },
+    },
+    infra: {
+      name: 'mock-infra',
+      async check() { return { watercourses: [{ kind: 'stream', name: null, culverted: false, distanceM: 120 }], substations: [{ name: null, operator: null, kind: 'minor_distribution', distanceM: 70 }], signals: [], source: 'SAMPLE DATA (mock mode)' }; },
+    },
     address: {
       name: 'mock',
       async byPostcode(pc) { return pc === 'E6 2AA' ? DB : []; },

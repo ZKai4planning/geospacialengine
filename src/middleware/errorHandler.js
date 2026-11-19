@@ -17,7 +17,7 @@ export function errorHandler(err, req, res, next) {
   }
   if (err instanceof AppError) {
     if (err.status >= 500) logger.error({ err: err.message, details: err.details }, 'upstream/server error');
-    return res.status(err.status).json({ error: { code: err.code, message: err.message } });
+    return res.status(err.status).json({ error: { code: err.code, message: err.message, ...(err.status === 409 && err.details ? { details: err.details } : {}) } });
   }
   if (err?.type === 'entity.parse.failed') {
     return res.status(400).json({ error: { code: 'BAD_JSON', message: 'Request body is not valid JSON.' } });

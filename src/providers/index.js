@@ -10,7 +10,10 @@ import { createConstraintAreas } from './constraintAreas.js';
 import { createLidarHeights } from './lidarHeights.js';
 import { createCoalRisk } from './coalRisk.js';
 import { createLandfill } from './landfill.js';
-import { fetchJson } from '../utils/http.js';
+import { createFloodSources } from './floodSources.js';
+import { createOsmInfra } from './osmInfra.js';
+import { createOpenLayers } from './openLayers.js';
+import { fetchJson, fetchText } from '../utils/http.js';
 import { createOsmBuildings } from './osmBuildings.js';
 import { createPlanningData } from './planningData.js';
 import { createTitleBoundary } from './titleBoundary.js';
@@ -68,6 +71,9 @@ export function createProviders({ db = getDb() } = {}) {
     lidar: config.lidarEnabled ? createLidarHeights({ dsmUrl: config.lidarDsmUrl ?? undefined, dtmUrl: config.lidarDtmUrl ?? undefined, dsmCoverage: config.lidarDsmCoverage ?? undefined, dtmCoverage: config.lidarDtmCoverage ?? undefined, axes: config.lidarAxes ?? undefined, userAgent: config.userAgent }) : null,
     coal: config.coalEnabled ? createCoalRisk({ db, liveUrl: config.coalLiveUrl, fetchJson }) : null,
     landfill: config.landfillEnabled ? createLandfill({ url: config.landfillUrl, fetchJson }) : null,
+    flood: config.floodEnabled ? createFloodSources({ fetchJson, fetchText, surfaceWaterUrl: config.surfaceWaterUrl, surfaceWaterLayer: config.surfaceWaterLayer, recordedUrl: config.recordedFloodUrl, reservoirUrl: config.reservoirFloodUrl }) : null,
+    infra: config.infraEnabled ? createOsmInfra() : null,
+    layers: config.openLayersEnabled ? createOpenLayers({ fetchJson, fetchText, cfg: config.openLayers }) : null,
     planning: createPlanit({ url: config.planitUrl, enabled: config.planningHistoryEnabled }),
     landRegistry: createLandRegistry({ url: config.ppdUrl }),
     epc: createEpc({ url: config.epcUrl, email: config.epcEmail, key: config.epcKey, token: config.epcToken, postcodeParam: config.epcPostcodeParam }),

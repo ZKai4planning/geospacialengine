@@ -28,6 +28,14 @@ export function createPgStore({ db }) {
       } catch (e) { if (e.code === INVALID_UUID) return null; fail('get', e); }
     },
 
+    /** Applications that have an officer review waiting for an outcome (the council's queue). */
+    async listPendingReviews() {
+      try {
+        const { rows } = await db.query(`SELECT data FROM applications WHERE data->'officerReviews' @> '[{"status":"pending"}]'::jsonb ORDER BY (data->>'updatedAt') DESC LIMIT 200`, []);
+        return rows.map((r) => r.data);
+      } catch (e) { fail('listPendingReviews', e); }
+    },
+
     async update(id, patch) {
       try {
         const { rows } = await db.query('SELECT application_patch($1, $2::jsonb) AS data', [id, JSON.stringify({ ...patch, updatedAt: new Date().toISOString() })]);

@@ -27,6 +27,12 @@ export function createPropertyService({ providers }) {
     findCoal: (a) => (providers.coal ? cached(`coal:${a.id}`, () => providers.coal.check({ lat: a.lat, lng: a.lng }), 6 * 3600) : null),
     /** Is the address on or near a recorded historic landfill site (made ground)? (null when the provider is off). */
     findLandfill: (a) => (providers.landfill ? cached(`landfill:${a.id}`, () => providers.landfill.check({ lat: a.lat, lng: a.lng }), 6 * 3600) : null),
+    /** Open EA flood data at the address: surface water, past flooding, reservoirs (null when the provider is off). */
+    findFlood: (a) => (providers.flood ? cached(`flood:${a.id}`, () => providers.flood.check({ lat: a.lat, lng: a.lng }), 6 * 3600) : null),
+    /** Air quality areas, flood defences, main river and road noise, read live (null when the provider is off). */
+    findLayers: (a) => (providers.layers ? cached(`layers:${a.id}`, () => providers.layers.check({ lat: a.lat, lng: a.lng }), 6 * 3600) : null),
+    /** Nearby watercourses, substations and traffic signals from OpenStreetMap (null when off). */
+    findInfra: (a) => (providers.infra ? cached(`infra:${a.id}`, () => providers.infra.check({ lat: a.lat, lng: a.lng }), 6 * 3600) : null),
     findPlot: (a) => cached(`plot:${a.id}`, () => providers.parcels.findPlot(a), 86400),
 
     buildProfile({ footprint, plot }) {

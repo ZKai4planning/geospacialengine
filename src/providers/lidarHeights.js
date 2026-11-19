@@ -36,9 +36,10 @@ export async function decodeTiff(buffer) {
 /** WCS 2.0.1 GetCoverage (KVP) for a grid in National Grid metres; `layer` = { url, coverage, axes }. */
 export function exportUrl(layer, grid) {
   const [ax, ay] = layer.axes ?? LIDAR_DEFAULTS.axes;
-  const q = new URLSearchParams({ service: 'WCS', version: '2.0.1', request: 'GetCoverage', coverageId: layer.coverage, format: 'image/tiff' });
+  const q = new URLSearchParams({ service: 'WCS', version: '2.0.1', request: 'GetCoverage', coverageId: layer.coverage, format: layer.format ?? 'image/tiff' });
   q.append('subset', `${ax}(${grid.x0},${grid.x0 + grid.nx})`);
   q.append('subset', `${ay}(${grid.y0},${grid.y0 + grid.ny})`);
+  if (layer.scaleFactor) q.append('scaleFactor', String(layer.scaleFactor));
   if (layer.subsettingCrs !== false) q.append('subsettingCrs', 'http://www.opengis.net/def/crs/EPSG/0/27700');
   return `${layer.url}?${q}`;
 }

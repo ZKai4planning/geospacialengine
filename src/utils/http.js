@@ -42,3 +42,11 @@ export async function fetchBuffer(url, opts = {}) {
     contentType: res.headers.get('content-type') || 'image/jpeg',
   };
 }
+
+/** Text GET (WMS GetFeatureInfo answers are often XML or plain text). Returns null on 404. */
+export async function fetchText(url, opts = {}) {
+  const res = await request(url, { ...opts, headers: { accept: '*/*', ...opts.headers } });
+  if (res.status === 404) return null;
+  if (!res.ok) throw upstream(`Upstream returned ${res.status}`, { url: redact(url) });
+  return res.text();
+}

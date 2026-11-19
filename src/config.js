@@ -61,6 +61,26 @@ const env = z
     COAL_LIVE_URL: z.string().optional(),
     // Historic landfill (made ground): Environment Agency Conditional Licence applies, so OFF unless you switch it on after reading it.
     LANDFILL_ENABLED: z.enum(['true', 'false']).default('false'),
+    // Open Environment Agency flood data (Open Government Licence, no key): surface water, recorded flood outlines, reservoir flood extents. ON by default; set false to switch off.
+    FLOOD_DATA_ENABLED: z.enum(['true', 'false']).default('true'),
+    SURFACE_WATER_WMS_URL: z.string().default('https://environment.data.gov.uk/spatialdata/nafra2-risk-of-flooding-from-surface-water/wms'),
+    SURFACE_WATER_WMS_LAYER: z.string().optional(),   // only if `npm run verify:open-data` lists a different layer name
+    RECORDED_FLOOD_URL: z.string().default('https://environment.data.gov.uk/spatialdata/recorded-flood-outlines/ogc/features/v1'),
+    RESERVOIR_FLOOD_URL: z.string().default('https://environment.data.gov.uk/spatialdata/reservoir-flood-extents-wet-day/ogc/features/v1'),
+    // Watercourses, substations and traffic signals from OpenStreetMap (one extra Overpass request). ON by default.
+    OSM_INFRA_ENABLED: z.enum(['true', 'false']).default('true'),
+    // More open data read live (no key): air quality areas (planning.data.gov.uk), EA flood defences and main river, Defra road noise. ON by default.
+    OPEN_LAYERS_ENABLED: z.enum(['true', 'false']).default('true'),
+    FLOOD_DEFENCES_URL: z.string().optional(),
+    MAIN_RIVER_URL: z.string().optional(),
+    NOISE_ROAD_WCS_URL: z.string().optional(),
+    NOISE_RAIL_WCS_URL: z.string().optional(),
+    NOISE_WCS_AXES: z.string().optional(),
+    // 228-parameter register: datasets loaded onto your own Postgres / VPS (npm run import:geo), OSM extras, reviewer sign-off and the release gate
+    GEO_LAYERS_ENABLED: z.enum(['true', 'false']).default('true'),
+    OSM_EXTRAS_ENABLED: z.enum(['true', 'false']).default('true'),
+    REVIEWER_TOKEN: z.string().optional(),
+    READINESS_ENFORCE: z.enum(['true', 'false']).default('false'),
     LANDFILL_URL: z.string().default('https://environment.data.gov.uk/arcgis/rest/services/EA/HistoricLandfill/FeatureServer/0'),
     // OVERPASS_URLS: z.string().default('https://overpass-api.de/api/interpreter,https://overpass.private.coffee/api/interpreter,https://overpass.kumi.systems/api/interpreter'),
     OVERPASS_URLS: z.string().default('https://overpass.ai4planning.com/api/interpreter'),
@@ -111,6 +131,10 @@ export const config = Object.freeze({
   lidarEnabled: env.LIDAR_ENABLED === 'true', lidarDsmUrl: env.LIDAR_DSM_URL || null, lidarDtmUrl: env.LIDAR_DTM_URL || null, lidarDsmCoverage: env.LIDAR_DSM_COVERAGE || null, lidarDtmCoverage: env.LIDAR_DTM_COVERAGE || null, lidarAxes: env.LIDAR_AXES ? env.LIDAR_AXES.split(',').map((x) => x.trim()) : null,
   coalEnabled: env.COAL_RISK_ENABLED === 'true', coalLiveUrl: env.COAL_LIVE_URL || null,
   landfillEnabled: env.LANDFILL_ENABLED === 'true', landfillUrl: env.LANDFILL_URL,
+  floodEnabled: env.FLOOD_DATA_ENABLED !== 'false', surfaceWaterUrl: env.SURFACE_WATER_WMS_URL, surfaceWaterLayer: env.SURFACE_WATER_WMS_LAYER || null, recordedFloodUrl: env.RECORDED_FLOOD_URL, reservoirFloodUrl: env.RESERVOIR_FLOOD_URL, infraEnabled: env.OSM_INFRA_ENABLED !== 'false',
+  openLayersEnabled: env.OPEN_LAYERS_ENABLED !== 'false', openLayers: { defencesUrl: env.FLOOD_DEFENCES_URL, mainRiverUrl: env.MAIN_RIVER_URL, noiseRoadWcsUrl: env.NOISE_ROAD_WCS_URL, noiseRailWcsUrl: env.NOISE_RAIL_WCS_URL, noiseAxes: env.NOISE_WCS_AXES ? env.NOISE_WCS_AXES.split(',').map((x) => x.trim()) : undefined },
+  geoLayersEnabled: env.GEO_LAYERS_ENABLED === 'true', osmExtrasEnabled: env.OSM_EXTRAS_ENABLED === 'true',
+  reviewerToken: env.REVIEWER_TOKEN?.trim() || null, readinessEnforce: env.READINESS_ENFORCE === 'true',
   overpassUrls: env.OVERPASS_URLS.split(',').map((s) => s.trim()).filter(Boolean),
   overpassSelfUrl: env.OVERPASS_SELF_URL || null, overpassSelfKey: env.OVERPASS_SELF_KEY || null,
   constraintsUrl: env.CONSTRAINTS_URL ? env.CONSTRAINTS_URL.trim().replace(/\/+$/, '') : null, constraintsKey: env.CONSTRAINTS_KEY?.trim() || null,
